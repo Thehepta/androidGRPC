@@ -1,0 +1,54 @@
+syntax = "proto3";
+package protocol;
+
+import "file.proto";
+
+option go_package = "protocol";
+option java_multiple_files = true;
+option java_package = "com.kone.pbdemo.protocol";
+
+message User {
+    reserved 6 to 7;
+    reserved "userId2";
+    int32 userId = 1;
+    string username = 2;
+    oneof msg {
+        string error = 3;
+        int32 code = 4;
+    }
+    string name = 8;
+
+    UserType userType = 9;
+    repeated int32 roles = 10;
+
+    protocol.File file = 11;
+    map<string, string> hobbys = 12;
+}
+
+enum UserType {
+    UNKNOW = 0;
+    ADMIN = 1;
+    BUSINESS_USER = 2;
+};
+
+service UserService {
+    rpc getUser (User) returns (User) {}
+    rpc getUsers (User) returns (stream User) {}
+    rpc saveUsers (stream User) returns (User) {}
+    rpc dumpdex (Empty) returns (Empty) {}
+    rpc dumpClass (StringArgument ) returns (StringArgument) {}
+
+
+}
+
+message StringArgument {
+    string className = 1;
+}
+
+
+message Empty {}
+
+
+service FileService {
+    rpc getFile(User) returns(File) {}
+}

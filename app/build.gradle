@@ -1,0 +1,119 @@
+plugins {
+    id 'com.android.application'
+    id "com.google.protobuf" version "0.9.4"
+}
+
+android {
+    namespace 'com.hepta.androidgrpc'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.hepta.androidgrpc"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    configurations.configureEach {
+        resolutionStrategy.force 'com.google.code.findbugs:jsr305:3.0.1'
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+    }
+
+
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+
+
+    sourceSets {
+        main {
+            proto {
+                // In addition to the default 'src/main/proto'
+                srcDir 'src/main/protobuf'
+                srcDir 'src/main/protocolbuffers'
+                // In addition to the default '**/*.proto' (use with caution).
+                // Using an extension other than 'proto' is NOT recommended,
+                // because when proto files are published along with class files, we can
+                // only tell the type of a file from its extension.
+                include '**/*.protodevel'
+            }
+            java {
+                srcDirs 'build/generated/source/proto/main/grpc'
+                srcDirs 'build/generated/source/proto/main/java'
+            }
+        }
+        test {
+            proto {
+                // In addition to the default 'src/test/proto'
+                srcDir 'src/test/protocolbuffers'
+            }
+        }
+    }
+
+    packagingOptions {
+        pickFirst 'META-INF/INDEX.LIST'
+        pickFirst 'META-INF/LICENSE'
+        pickFirst 'META-INF/io.netty.versions.properties'
+
+    }
+
+}
+
+
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.17.2'
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.45.1' // CURRENT_GRPC_VERSION
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java { option 'lite' }
+            }
+            task.plugins {
+                grpc {
+                    option 'lite' }
+            }
+        }
+    }
+}
+
+
+
+dependencies {
+
+    implementation 'io.grpc:grpc-netty:1.45.1' // CURRENT_GRPC_VERSION
+    implementation 'io.grpc:grpc-protobuf:1.45.1' // CURRENT_GRPC_VERSION
+    implementation 'io.grpc:grpc-stub:1.45.1' // CURRENT_GRPC_VERSION
+    implementation 'org.apache.tomcat:annotations-api:6.0.53'
+
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}

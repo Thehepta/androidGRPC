@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package protocol;
+
+option go_package = "protocol";
+option java_package = "com.kone.pbdemo.protocol";
+
+message File {
+    string name = 1;
+    int32 size = 2;
+}
