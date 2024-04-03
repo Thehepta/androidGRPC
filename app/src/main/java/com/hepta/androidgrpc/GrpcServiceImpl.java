@@ -7,6 +7,9 @@ import com.kone.pbdemo.protocol.Empty;
 import com.kone.pbdemo.protocol.StringArgument;
 import com.kone.pbdemo.protocol.User;
 import com.kone.pbdemo.protocol.UserServiceGrpc;
+import com.kone.pbdemo.protocol.cookieList;
+
+import java.util.List;
 
 import io.grpc.stub.StreamObserver;
 
@@ -92,5 +95,16 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
 
         responseObserver.onNext(request);
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getCookieList(Empty request, StreamObserver<cookieList> responseObserver) {
+        List<long[]> ck = dump.getCookieList(context);
+
+//        cookieList response =  cookieList.newBuilder().set.build();
+//        User user = User.newBuilder().setName("user1").build();
+//        cookieList CK = cookieList.
+//        responseObserver.onNext();
+
     }
 }

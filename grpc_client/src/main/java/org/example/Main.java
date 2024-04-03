@@ -13,17 +13,14 @@ import java.util.Iterator;
 public class Main {
 
 
-    public class a {
 
-        public void a(){
-        }
-        public void a(String p0){
-        }
-        public void b(int p0){
-        }
+    public static void  DownloadFile(UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub, long cookie, String outDir)
+    {
+        DownloadFileRequest  downloadRequest =  DownloadFileRequest.newBuilder().setCookie(cookie).build();
+//        downloadRequest.getFilePath()
+        userServiceBlockingStub.downloadFile(downloadRequest);
 
     }
-
 
     public static void main(String[] args) throws InterruptedException {
         FileOuterClass.File file = FileOuterClass.File.newBuilder()
@@ -62,6 +59,7 @@ public class Main {
 //        StringArgument className = StringArgument.newBuilder().setClassName("com.ccb.start.MainActivity").build();
 
         userServiceBlockingStub.dumpdex(empty);
+
 //        userServiceBlockingStub.dumpClass(className);
         
 

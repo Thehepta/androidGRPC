@@ -37,9 +37,30 @@ service UserService {
     rpc saveUsers (stream User) returns (User) {}
     rpc dumpdex (Empty) returns (Empty) {}
     rpc dumpClass (StringArgument ) returns (StringArgument) {}
-
-
+    rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
+    rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
 }
+
+
+//Upload
+message UploadFileRequest {
+  string FileName = 1;
+  bytes Content = 2;
+}
+
+message UploadFileResponse {
+  string FilePath = 1;
+}
+
+//Download
+message DownloadFileRequest {
+  int64 Cookie = 1;
+}
+
+message DownloadFileResponse {
+  bytes Content = 1;
+}
+
 
 message StringArgument {
     string className = 1;
