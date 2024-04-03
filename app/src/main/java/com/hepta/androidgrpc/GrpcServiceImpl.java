@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 
+import com.google.protobuf.ByteString;
 import com.kone.pbdemo.protocol.DexInfo;
 import com.kone.pbdemo.protocol.DexInfoList;
 import com.kone.pbdemo.protocol.DownloadFileRequest;
@@ -12,6 +13,7 @@ import com.kone.pbdemo.protocol.Empty;
 import com.kone.pbdemo.protocol.StringArgument;
 import com.kone.pbdemo.protocol.User;
 import com.kone.pbdemo.protocol.UserServiceGrpc;
+import com.kone.pbdemo.protocol.dexbuff;
 
 import java.util.List;
 import java.util.Map;
@@ -125,10 +127,12 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         DexInfo cookie = request.getDexinfo();
         long[] longArray = cookie.getValuesList().stream().mapToLong(Long::longValue).toArray();
         List<byte[]> dexfile_list= dump.dumpDexByCookie(longArray);
-
-//        DownloadFileResponse downloadFileResponse = DownloadFileResponse.newBuilder().setContent();
-//        responseObserver.onNext();
-
-
+        DexInfo.Builder ret_dexinfo_builder = DexInfo.newBuilder(cookie);
+        for(byte[] dex:dexfile_list){
+            dexbuff dex_buff = dexbuff.newBuilder().setContent(ByteString.copyFrom(dex)).build();
+            ret_dexinfo_builder.addBuff(dex_buff);
+        }
+        DownloadFileResponse downloadFileResponse = DownloadFileResponse.newBuilder().setContent(ret_dexinfo_builder.build()).build();
+        responseObserver.onNext(downloadFileResponse);
     }
 }

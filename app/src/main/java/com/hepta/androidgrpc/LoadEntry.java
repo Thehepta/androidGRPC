@@ -20,6 +20,7 @@ public class LoadEntry {
                     server = NettyServerBuilder
                             .forPort(port)
                             .addService(new GrpcServiceImpl(context,source,argument))
+                            .maxInboundMessageSize(Integer.MAX_VALUE)
                             .build()
                             .start();
                     System.out.println("server started, port : " + port);

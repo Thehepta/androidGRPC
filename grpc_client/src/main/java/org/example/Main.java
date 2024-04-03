@@ -4,9 +4,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.kone.pbdemo.protocol.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
-
-import java.util.Iterator;
 
 // Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
 // then press Enter. You can now see whitespace characters in your code.
@@ -48,16 +45,16 @@ public class Main {
             e.printStackTrace();
         }
 
-        String host = "192.168.31.152";
+        String host = "192.168.1.3";
         int port = 9091;
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
         GrpcService service = new GrpcService(channel);
 
 
 //        StringArgument className = StringArgument.newBuilder().setClassName("com.yunmai.valueoflife.MainActivity$a").build();
 //        StringArgument className = StringArgument.newBuilder().setClassName("com.ccb.start.MainActivity").build();
 
-        service.dumpdex();
+        service.dumpDexFile();
 
 //        userServiceBlockingStub.dumpClass(className);
         

@@ -2,7 +2,6 @@ package org.example;
 
 import com.kone.pbdemo.protocol.*;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 
 public class GrpcService {
 
@@ -25,12 +24,13 @@ public class GrpcService {
     }
 
 
-    void GetDexFileByCookie(){
+    void dumpDexFile(){
         Empty empty = Empty.newBuilder().build();
-        CookieList cookieList =  iServerInface.getCookieList(empty);
-        for(Cookie cookie : cookieList.getLongArraysList()){
-            DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setCookie(cookie).build();
+        DexInfoList dexInfoList =  iServerInface.getCookieList(empty);
+        for(DexInfo dexInfo : dexInfoList.getDexinfoList()){
+            DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setDexinfo(dexInfo).build();
             DownloadFileResponse downloadFileResponse = iServerInface.downloadFile(downloadFileRequest).next();
+            DexInfo dex =  downloadFileResponse.getContent();
         }
 
     }

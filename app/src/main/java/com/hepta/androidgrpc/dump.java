@@ -22,7 +22,7 @@ public class dump {
 
     public static native ClassLoader[] getBaseDexClassLoaderList();
 
-    public static native void dumpMethod(Member method);
+    public static native byte[] dumpMethod(Member method);
     public static native ClassLoader[] getClassLoaderList();
     public static void Entry(Context ctx,String source, String argument) {
         PreLoadNativeSO(ctx,source);

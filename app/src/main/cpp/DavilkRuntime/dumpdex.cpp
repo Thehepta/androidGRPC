@@ -186,7 +186,7 @@ void dumpEntry(JNIEnv *env){
     env->CallStaticVoidMethod(cls,Jdumpdex);
 }
 
-void dumpMethod(JNIEnv *env, jclass cls, jobject method){
+jbyteArray   dumpMethod(JNIEnv *env, jclass cls, jobject method){
 
     ArtMethod* artMethod = static_cast<ArtMethod *>(GetArtMethod(env, cls, method));
     CodeItem *code_item = GetCodeItem_fun(artMethod);
@@ -201,7 +201,22 @@ void dumpMethod(JNIEnv *env, jclass cls, jobject method){
         } else {
             code_item_len = 16 + code_item->insns_size_in_code_units_ * 2;
         }
-        WriteCodeItemToDexFileByArtMethod(artMethod, code_item_len);
+
+        uint8_t *code_item = reinterpret_cast<uint8_t *>(GetCodeItem_fun(artMethod));
+        uintptr_t code_item_addr = reinterpret_cast<uintptr_t>(code_item);
+        for(auto dex_fd : dex_fd_maps){
+            std::string dumpdex_path = dex_fd.first;
+            const DexFile* dexFile = dex_fd.second;
+            uintptr_t dex_begin = (uintptr_t) dexFile->begin_;
+            uintptr_t dex_end = dex_begin + dexFile->size_;
+            if( dex_begin < code_item_addr &&  code_item_addr <  dex_end){
+                jbyteArray byteArray =env->NewByteArray( code_item_len);
+                env->SetByteArrayRegion(byteArray, 0, code_item_len,reinterpret_cast<const jbyte *>(code_item));
+
+            }
+        }
+
+
     }
 }
 
@@ -225,7 +240,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     JNINativeMethod methods[]= {
             {"getBaseDexClassLoaderList", "()[Ljava/lang/ClassLoader;",(void*) getBaseDexClassLoaderList},
             {"getClassLoaderList", "()[Ljava/lang/ClassLoader;",(void*)getClassLoaderList},
-            {"dumpMethod", "(Ljava/lang/reflect/Member;)V",(void*)dumpMethod},
+            {"dumpMethod", "(Ljava/lang/reflect/Member;)[B",(void*)dumpMethod},
             {"dumpDexByCookie", "([JLjava/lang/String;)V", (void*)dumpDexByCookie},
             {"dumpDexByCookie", "([J)Ljava/util/List;", (void*)dumpDexByCookie_2},
 //            {"AutodumpDex", "()V", (void*)AutodumpDex},

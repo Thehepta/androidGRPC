@@ -18,9 +18,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        LoadEntry.Entry(this,getApplicationInfo().sourceDir,"");
         dump.Entry(this,getApplicationInfo().sourceDir,"");
-        dump.dumpdex(this);
+        LoadEntry.Entry(this,getApplicationInfo().sourceDir,"");
+//        dump.dumpdex(this);
 //        Map<long[],String> cooklistMaps = dump.getCookieList(this);
         Log.e("RZx","fewew");
     }
