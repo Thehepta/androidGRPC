@@ -9,7 +9,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import dalvik.system.BaseDexClassLoader;
 import dalvik.system.DexFile;
@@ -25,6 +27,7 @@ public class dump {
     public static void Entry(Context ctx,String source, String argument) {
         PreLoadNativeSO(ctx,source);
     }
+    public static native List<byte[]> dumpDexByCookie(long[] cookie);
 
     public static void PreLoadNativeSO(Context context, String source) {
         try {
@@ -58,8 +61,8 @@ public class dump {
         }
     }
 
-    public static List<long[]> getCookieList(Context context) {
-        List<long[]> cookieList =new ArrayList<>();
+    public static Map<long[],String> getCookieList(Context context) {
+        Map<long[],String> cookieListMpas =new HashMap<>();
 
         BaseDexClassLoader[] classLoaders = (BaseDexClassLoader[]) getBaseDexClassLoaderList();
         try {
@@ -94,7 +97,8 @@ public class dump {
                             if (dexFile != null) {
                                 //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
                                 long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
-                                cookieList.add(cookie);
+                                String fileName = (String) DexFile_mFileName.get(dexFile);
+                                cookieListMpas.put(cookie,fileName);
                             }
                         }
                     }
@@ -106,7 +110,7 @@ public class dump {
             e.printStackTrace();
         }
 
-        return cookieList;
+        return cookieListMpas;
     }
     public static void dumpdex(Context context) {
 
@@ -148,7 +152,8 @@ public class dump {
                             if (dexFile != null) {
                                 //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
                                 long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
-                                dumpDexByCookie(cookie, pathFile.getAbsolutePath());
+                                List<byte[]> dexflie_list =  dumpDexByCookie(cookie);
+                                Log.e("rzx","");
                             }
                         }
                     }

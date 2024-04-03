@@ -3,15 +3,21 @@ package com.hepta.androidgrpc;
 import android.content.Context;
 import android.util.Log;
 
+
+import com.kone.pbdemo.protocol.DexInfo;
+import com.kone.pbdemo.protocol.DexInfoList;
+import com.kone.pbdemo.protocol.DownloadFileRequest;
+import com.kone.pbdemo.protocol.DownloadFileResponse;
 import com.kone.pbdemo.protocol.Empty;
 import com.kone.pbdemo.protocol.StringArgument;
 import com.kone.pbdemo.protocol.User;
 import com.kone.pbdemo.protocol.UserServiceGrpc;
-import com.kone.pbdemo.protocol.cookieList;
 
 import java.util.List;
+import java.util.Map;
 
 import io.grpc.stub.StreamObserver;
+
 
 public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
 
@@ -98,13 +104,31 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     }
 
     @Override
-    public void getCookieList(Empty request, StreamObserver<cookieList> responseObserver) {
-        List<long[]> ck = dump.getCookieList(context);
+    public void getCookieList(Empty request, StreamObserver<DexInfoList> responseObserver) {
+        Map<long[],String> ck_list = dump.getCookieList(context);
+        DexInfoList.Builder cooki_list_build =  DexInfoList.newBuilder();
+        for(long[] ck:ck_list.keySet() ){
+            DexInfo.Builder cookie_build = DexInfo.newBuilder();
+            for(long k_long:ck){
+                cookie_build.addValues(k_long);
+            }
+            cookie_build.setDexpath(ck_list.get(ck));
+            cooki_list_build.addDexinfo(cookie_build.build());
+        }
 
-//        cookieList response =  cookieList.newBuilder().set.build();
-//        User user = User.newBuilder().setName("user1").build();
-//        cookieList CK = cookieList.
+        responseObserver.onNext(cooki_list_build.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void downloadFile(DownloadFileRequest request, StreamObserver<DownloadFileResponse> responseObserver) {
+        DexInfo cookie = request.getDexinfo();
+        long[] longArray = cookie.getValuesList().stream().mapToLong(Long::longValue).toArray();
+        List<byte[]> dexfile_list= dump.dumpDexByCookie(longArray);
+
+//        DownloadFileResponse downloadFileResponse = DownloadFileResponse.newBuilder().setContent();
 //        responseObserver.onNext();
+
 
     }
 }

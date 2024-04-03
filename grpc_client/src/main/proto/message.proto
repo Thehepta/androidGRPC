@@ -31,12 +31,18 @@ enum UserType {
     BUSINESS_USER = 2;
 };
 
+message CookieList {
+    repeated Cookie long_arrays = 1;
+}
+
+
 service UserService {
     rpc getUser (User) returns (User) {}
     rpc getUsers (User) returns (stream User) {}
     rpc saveUsers (stream User) returns (User) {}
     rpc dumpdex (Empty) returns (Empty) {}
     rpc dumpClass (StringArgument ) returns (StringArgument) {}
+    rpc getCookieList (Empty ) returns (CookieList) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
     rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
 }
@@ -54,7 +60,7 @@ message UploadFileResponse {
 
 //Download
 message DownloadFileRequest {
-  int64 Cookie = 1;
+  Cookie cookie = 1;
 }
 
 message DownloadFileResponse {
@@ -66,6 +72,11 @@ message StringArgument {
     string className = 1;
 }
 
+
+message Cookie {
+    repeated int64 values = 1;
+    string dexpath = 2;
+}
 
 message Empty {}
 

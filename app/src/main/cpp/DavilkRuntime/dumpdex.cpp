@@ -68,8 +68,36 @@ static bool ConvertJavaArrayToDexFiles(
     return env->ExceptionCheck() != JNI_TRUE;
 }
 
+jobject dumpDexByCookie_2(JNIEnv *env, jclass clazz, jlongArray cookie) {
 
+    jclass arrayListClass = env->FindClass( "java/util/ArrayList");
+    jmethodID arrayListInit = env->GetMethodID(arrayListClass, "<init>", "()V");
+    jmethodID arrayListAdd = env->GetMethodID( arrayListClass, "add", "(Ljava/lang/Object;)Z");
+    // 创建一个 ArrayList 实例
+    jobject arrayList = env->NewObject( arrayListClass, arrayListInit);
+    // 获取 byte[] 类和构造函数
+    std::vector<const DexFile*> dex_files;
+    const OatFile* oat_file;
+    bool re = ConvertJavaArrayToDexFiles(env,cookie,dex_files,oat_file);
+    if(!re){
+        LOGV("dumpDexByCookie ConvertJavaArrayToDexFiles failed\n");
+        return arrayList;
+    }
+    for(int i=0;i<dex_files.size();i++){
+        const DexFile* dex_file = dex_files[i];
+        if (dex_file != nullptr) {
+            jbyteArray byteArray =env->NewByteArray( dex_file->size_);
+            env->SetByteArrayRegion(byteArray, 0, dex_file->size_,reinterpret_cast<const jbyte *>(dex_file->begin_));
+            env->CallBooleanMethod( arrayList, arrayListAdd, byteArray);
+            env->DeleteLocalRef( byteArray);
+        }
+    }
+    return arrayList;
+
+}
 void dumpDexByCookie(JNIEnv *env, jclass thiz, jlongArray cookie,jstring jdumpDir) {
+    LOGV("dumpDexByCookie start\n");
+
     // TODO: implement dumpDexByCookie()
     std::vector<const DexFile*> dex_files;
     std::string dumpDir = env->GetStringUTFChars(jdumpDir, nullptr);
@@ -82,7 +110,9 @@ void dumpDexByCookie(JNIEnv *env, jclass thiz, jlongArray cookie,jstring jdumpDi
         const DexFile* dex_file = dex_files[i];
         if (dex_file != nullptr) {
             char dumpdex_path[100]={0} ;
-            sprintf(dumpdex_path,(dumpDir+"/%p.dex").c_str(),dex_file->begin_);
+            sprintf(dumpdex_path,(dumpDir+"/%p.dex").c_str(),dex_file->begin_);\
+                LOGV("dumpdex_path = %s\n",dumpdex_path);
+
             int dumpdex_fd = open(dumpdex_path, O_CREAT|O_RDWR,0644);
             if (dumpdex_fd < 0) {
                 LOGV("Error opening file.\n");
@@ -90,14 +120,15 @@ void dumpDexByCookie(JNIEnv *env, jclass thiz, jlongArray cookie,jstring jdumpDi
             }
             size_t bytes_written = write(dumpdex_fd,dex_file->begin_,  dex_file->size_); // 将内存中的数据写入文件
             if (bytes_written != dex_file->size_) {
-                LOGV("Error writing to file.\n");
+//                LOGV("Error writing to file.\n");
             } else {
-                LOGV("Data successfully written to file:%s.\n",dumpdex_path);
+//                LOGV("Data successfully written to file:%s.\n",dumpdex_path);
             }
             close(dumpdex_fd);
             dex_fd_maps.emplace(std::string(dumpdex_path),dex_file);
         }
     }
+    LOGV("dumpDexByCookie end\n");
     return;
 }
 
@@ -196,6 +227,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
             {"getClassLoaderList", "()[Ljava/lang/ClassLoader;",(void*)getClassLoaderList},
             {"dumpMethod", "(Ljava/lang/reflect/Member;)V",(void*)dumpMethod},
             {"dumpDexByCookie", "([JLjava/lang/String;)V", (void*)dumpDexByCookie},
+            {"dumpDexByCookie", "([J)Ljava/util/List;", (void*)dumpDexByCookie_2},
 //            {"AutodumpDex", "()V", (void*)AutodumpDex},
     };
     env->RegisterNatives(classTest, methods, sizeof(methods)/sizeof(JNINativeMethod));
@@ -207,11 +239,6 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     return JNI_VERSION_1_6;
 }
-
-
-
-
-
 
 
 

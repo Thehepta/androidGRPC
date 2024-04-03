@@ -31,13 +31,10 @@ enum UserType {
     BUSINESS_USER = 2;
 };
 
-message cookieList {
-    repeated cookie long_arrays = 1;
-
-    message cookie {
-        repeated int64 values = 1;
-    }
+message DexInfoList {
+    repeated DexInfo dexinfo = 1;
 }
+
 
 service UserService {
     rpc getUser (User) returns (User) {}
@@ -45,11 +42,45 @@ service UserService {
     rpc saveUsers (stream User) returns (User) {}
     rpc dumpdex (Empty) returns (Empty) {}
     rpc dumpClass (StringArgument ) returns (StringArgument) {}
-    rpc getCookieList (Empty ) returns (cookieList) {}
+    rpc getCookieList (Empty ) returns (DexInfoList) {}
+    rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
+    rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
 }
+
+
+//Upload
+message UploadFileRequest {
+  string FileName = 1;
+  bytes Content = 2;
+}
+
+message UploadFileResponse {
+  string FilePath = 1;
+}
+
+//Download
+message DownloadFileRequest {
+    DexInfo dexinfo = 1;
+}
+
+message DownloadFileResponse {
+    DexInfo Content = 1;
+}
+
 
 message StringArgument {
     string className = 1;
+}
+
+message dexbuff {
+    bytes Content = 1;
+}
+
+message DexInfo {
+    repeated int64 values = 1;
+    string dexpath = 2;
+    repeated dexbuff buff = 3 ;
+
 }
 
 message Empty {}

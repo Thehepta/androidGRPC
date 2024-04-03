@@ -14,11 +14,11 @@ public class Main {
 
 
 
-    public static void  DownloadFile(UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub, long cookie, String outDir)
+    public static void  DownloadFile(UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub, long[] cookie, String outDir)
     {
-        DownloadFileRequest  downloadRequest =  DownloadFileRequest.newBuilder().setCookie(cookie).build();
-//        downloadRequest.getFilePath()
-        userServiceBlockingStub.downloadFile(downloadRequest);
+//        DownloadFileRequest  downloadRequest =  DownloadFileRequest.newBuilder().setCookie(cookie).build();
+////        downloadRequest.getFilePath()
+//        userServiceBlockingStub.downloadFile(downloadRequest);
 
     }
 
@@ -51,14 +51,13 @@ public class Main {
         String host = "192.168.31.152";
         int port = 9091;
         ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+        GrpcService service = new GrpcService(channel);
 
-        UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub = UserServiceGrpc.newBlockingStub(channel);
 
-        Empty empty = Empty.newBuilder().build();
 //        StringArgument className = StringArgument.newBuilder().setClassName("com.yunmai.valueoflife.MainActivity$a").build();
 //        StringArgument className = StringArgument.newBuilder().setClassName("com.ccb.start.MainActivity").build();
 
-        userServiceBlockingStub.dumpdex(empty);
+        service.dumpdex();
 
 //        userServiceBlockingStub.dumpClass(className);
         
