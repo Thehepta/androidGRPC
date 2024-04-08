@@ -41,12 +41,19 @@ service UserService {
     rpc getUsers (User) returns (stream User) {}
     rpc saveUsers (stream User) returns (User) {}
     rpc dumpdex (Empty) returns (Empty) {}
+    rpc dumpMethod (dumpMethodString) returns (dexbuff) {}
     rpc dumpClass (StringArgument ) returns (StringArgument) {}
     rpc getCookieList (Empty ) returns (DexInfoList) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
     rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
 }
 
+
+message dumpMethodString {
+    string className = 1;
+    string methodName = 2;
+    string methodSign = 3;
+}
 
 //Upload
 message UploadFileRequest {
