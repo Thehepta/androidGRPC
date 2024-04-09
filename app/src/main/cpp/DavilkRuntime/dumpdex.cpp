@@ -15,6 +15,11 @@
 
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 
+inline static bool IsIndexId(jmethodID mid) { return ((reinterpret_cast<uintptr_t>(mid) % 2) != 0); }
+
+static jfieldID field_art_method = nullptr;
+
+
 jobjectArray getClassLoaderList(JNIEnv *env, jclass thiz) {
 
     return getClassLoaders(env,android_get_application_target_sdk_version());
@@ -68,7 +73,7 @@ static bool ConvertJavaArrayToDexFiles(
     return env->ExceptionCheck() != JNI_TRUE;
 }
 
-jobject dumpDexByCookie_2(JNIEnv *env, jclass clazz, jlongArray cookie) {
+jobject dumpDexBuffListByCookie(JNIEnv *env, jclass clazz, jlongArray cookie) {
 
     jclass arrayListClass = env->FindClass( "java/util/ArrayList");
     jmethodID arrayListInit = env->GetMethodID(arrayListClass, "<init>", "()V");
@@ -103,9 +108,6 @@ void dumpDexByCookie(JNIEnv *env, jclass thiz, jlongArray cookie,jstring jdumpDi
     std::string dumpDir = env->GetStringUTFChars(jdumpDir, nullptr);
     const OatFile* oat_file;
     bool re = ConvertJavaArrayToDexFiles(env,cookie,dex_files,oat_file);
-//    jobjectArray dex_byteArray = env->NewObjectArray(dex_files.size(),env->FindClass("[B"), nullptr);
-
-//    for (const DexFile* dex_file : dex_files) {
     for(int i=0;i<dex_files.size();i++){
         const DexFile* dex_file = dex_files[i];
         if (dex_file != nullptr) {
@@ -146,17 +148,28 @@ jfieldID getArtMethod_filed(JNIEnv *env){
     return field;
 }
 
+//传入的是method索引
+ArtMethod * GetArtMethod(JNIEnv *env, jclass clazz, jmethodID methodId) {
+
+    if (android_get_device_api_level() >= __ANDROID_API_R__) {
+        if (IsIndexId(methodId)) {
+            jobject method = env->ToReflectedMethod(clazz, methodId, true);
+            return reinterpret_cast<ArtMethod *>(env->GetLongField(method, field_art_method));
+        }
+    }
+    return reinterpret_cast<ArtMethod *>(methodId);
+}
 
 
 //传入的不是method索引，而是method对象的索引
-void *GetArtMethod(JNIEnv *env, jclass clazz, jobject methodId) {
+ArtMethod *GetArtMethod(JNIEnv *env, jclass clazz, jobject methodId) {
 
     if (android_get_device_api_level() >= __ANDROID_API_R__) {
         jfieldID field_art_method = getArtMethod_filed(env);
-        return reinterpret_cast<void *>(env->GetLongField(methodId, field_art_method));
+        return reinterpret_cast<ArtMethod *>(env->GetLongField(methodId, field_art_method));
 
     }
-    return methodId;
+    return reinterpret_cast<ArtMethod *>(methodId);
 }
 
 bool WriteCodeItemToDexFileByArtMethod(ArtMethod* artMethod, uint32_t code_item_len){
@@ -180,15 +193,9 @@ bool WriteCodeItemToDexFileByArtMethod(ArtMethod* artMethod, uint32_t code_item_
     return false;
 }
 
-void dumpEntry(JNIEnv *env){
-    jclass cls = env->FindClass("com/hepta/rmi/LoadEntry");
-    jmethodID  Jdumpdex =  env->GetStaticMethodID(cls,"dumpdex","()V");
-    env->CallStaticVoidMethod(cls,Jdumpdex);
-}
 
-jbyteArray   dumpMethod(JNIEnv *env, jclass cls, jobject method){
+jbyteArray dumpMethod_code_item(JNIEnv *env,ArtMethod* artMethod){
 
-    ArtMethod* artMethod = static_cast<ArtMethod *>(GetArtMethod(env, cls, method));
     CodeItem *code_item = GetCodeItem_fun(artMethod);
     uint8_t *code_item_addr = reinterpret_cast<uint8_t *>(code_item);
     if (LIKELY(code_item != nullptr)) {
@@ -204,26 +211,36 @@ jbyteArray   dumpMethod(JNIEnv *env, jclass cls, jobject method){
 
         uint8_t *code_item = reinterpret_cast<uint8_t *>(GetCodeItem_fun(artMethod));
         uintptr_t code_item_addr = reinterpret_cast<uintptr_t>(code_item);
-        for(auto dex_fd : dex_fd_maps){
-            std::string dumpdex_path = dex_fd.first;
-            const DexFile* dexFile = dex_fd.second;
-            uintptr_t dex_begin = (uintptr_t) dexFile->begin_;
-            uintptr_t dex_end = dex_begin + dexFile->size_;
-            if( dex_begin < code_item_addr &&  code_item_addr <  dex_end){
-                jbyteArray byteArray =env->NewByteArray( code_item_len);
-                env->SetByteArrayRegion(byteArray, 0, code_item_len,reinterpret_cast<const jbyte *>(code_item));
 
-            }
-        }
-
-
+        jbyteArray byteArray =env->NewByteArray( code_item_len);
+        env->SetByteArrayRegion(byteArray, 0, code_item_len,reinterpret_cast<const jbyte *>(code_item));
+        return byteArray;
     }
 }
+jbyteArray   dumpMethodByMember(JNIEnv *env, jclass cls, jobject method){
 
-void AutodumpDex(JNIEnv *env, jclass cls) {
-    LoadJvmTI(env);
-
+    ArtMethod* artMethod = GetArtMethod(env, cls, method);
+    return dumpMethod_code_item(env,artMethod);
 }
+
+
+jmethodID NativeFindJmethod(JNIEnv *env,jclass cls, jstring jmethod_name,jstring jmethod_sign){
+    const char* method_name = env->GetStringUTFChars(jmethod_name, nullptr);
+    const char* method_sign = env->GetStringUTFChars(jmethod_sign, nullptr);
+    jmethodID ret_jmethod =  env->GetMethodID(cls,method_name,method_sign);
+    if(ret_jmethod == nullptr){
+        ret_jmethod = env->GetStaticMethodID(cls,method_name,method_sign);
+    }
+    return ret_jmethod;
+}
+
+jbyteArray dumpMethodByString(JNIEnv *env, jclass thiz, jclass cls, jstring method_name,jstring method_sign){
+
+    jmethodID findMethod = NativeFindJmethod(env,cls,method_name,method_sign);
+    ArtMethod* artMethod = GetArtMethod(env, cls, findMethod);
+    return dumpMethod_code_item(env,artMethod);
+}
+
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
@@ -233,24 +250,21 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     }
 
     GetCodeItem_fun = (CodeItem* (*)(void * ))resolve_elf_internal_symbol("libart.so","_ZN3art9ArtMethod11GetCodeItemEv");
-
-
+    field_art_method = getArtMethod_filed(env);
 
     jclass classTest = env->FindClass("com/hepta/androidgrpc/dump");
     JNINativeMethod methods[]= {
             {"getBaseDexClassLoaderList", "()[Ljava/lang/ClassLoader;",(void*) getBaseDexClassLoaderList},
             {"getClassLoaderList", "()[Ljava/lang/ClassLoader;",(void*)getClassLoaderList},
-            {"dumpMethod", "(Ljava/lang/reflect/Member;)[B",(void*)dumpMethod},
+            {"dumpMethodByMember", "(Ljava/lang/reflect/Member;)[B",(void*)dumpMethodByMember},
+            {"dumpMethodByString", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/String;)[B",(void*)dumpMethodByString},
             {"dumpDexByCookie", "([JLjava/lang/String;)V", (void*)dumpDexByCookie},
-            {"dumpDexByCookie", "([J)Ljava/util/List;", (void*)dumpDexByCookie_2},
+            {"dumpDexBuffListByCookie", "([J)Ljava/util/List;", (void*)dumpDexBuffListByCookie},
 //            {"AutodumpDex", "()V", (void*)AutodumpDex},
     };
     env->RegisterNatives(classTest, methods, sizeof(methods)/sizeof(JNINativeMethod));
 
 
-//    jmethodID javamethod = env->GetStaticMethodID(classTest,"dumpMethod","(Ljava/lang/reflect/Member;)V");
-
-//    INIT_HOOK_PlatformABI(env, nullptr,javamethod,(void*)dumpMethod,109);
 
     return JNI_VERSION_1_6;
 }

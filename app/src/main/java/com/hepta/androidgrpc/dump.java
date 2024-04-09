@@ -18,16 +18,10 @@ import dalvik.system.DexFile;
 
 public class dump {
 
-    public static native void dumpDexByCookie(long[] cookie,String dumpDir);
 
-    public static native ClassLoader[] getBaseDexClassLoaderList();
-
-    public static native byte[] dumpMethod(Member method);
-    public static native ClassLoader[] getClassLoaderList();
     public static void Entry(Context ctx,String source, String argument) {
         PreLoadNativeSO(ctx,source);
     }
-    public static native List<byte[]> dumpDexByCookie(long[] cookie);
 
     public static void PreLoadNativeSO(Context context, String source) {
         try {
@@ -49,11 +43,11 @@ public class dump {
                 Class LoadEntry_cls =  classLoader.loadClass(className);
                 Method[] Declaredmethods =  LoadEntry_cls.getDeclaredMethods();
                 for (Method method :Declaredmethods ) {
-                    dumpMethod(method);
+                    dumpMethodByMember(method);
                 }
                 Constructor[] DeclaredConstructors =  LoadEntry_cls.getDeclaredConstructors();
                 for (Constructor method :DeclaredConstructors ) {
-                    dumpMethod(method);
+                    dumpMethodByMember(method);
                 }
                 Log.e("LoadEntry",className);
             } catch (ClassNotFoundException e) {
@@ -152,7 +146,7 @@ public class dump {
                             if (dexFile != null) {
                                 //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
                                 long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
-                                List<byte[]> dexflie_list =  dumpDexByCookie(cookie);
+                                List<byte[]> dexflie_list =  dumpDexBuffListByCookie(cookie);
                                 Log.e("rzx","");
                             }
                         }
@@ -165,5 +159,13 @@ public class dump {
             e.printStackTrace();
         }
     }
+
+
+    public static native List<byte[]> dumpDexBuffListByCookie(long[] cookie);
+    public static native void dumpDexByCookie(long[] cookie,String dumpDir);
+    public static native ClassLoader[] getBaseDexClassLoaderList();
+    public static native byte[] dumpMethodByMember(Member method);
+    public static native byte[] dumpMethodByString(Class<?> cls, String methodName, String methodSign);
+    public static native ClassLoader[] getClassLoaderList();
 
 }
