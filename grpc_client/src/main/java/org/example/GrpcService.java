@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Iterator;
 import java.util.List;
 
 public class GrpcService {
@@ -28,22 +29,26 @@ public class GrpcService {
     }
 
     void dumpClass(String className){
-//        StringArgument className = StringArgument.newBuilder().setClassName("com.yunmai.valueoflife.MainActivity$a").build();
-//        StringArgument className = StringArgument.newBuilder().setClassName("com.ccb.start.MainActivity").build();
-//        iServerInface.dumpClass(className);
-        dumpMethodString.Builder dumpMethod = dumpMethodString.newBuilder();
-        dumpMethod.setClassName("");
-        dumpMethod.setMethodName("");
-        dumpMethod.setMethodSign("");
-        dexbuff buff = iServerInface.dumpMethod(dumpMethod.build());
+        StringArgument classNameArg = StringArgument.newBuilder().setClassName(className).build();
+        DumpClassInfo dumpClassList = iServerInface.dumpClass(classNameArg).next();
+        if(dumpClassList.getStatus()){
+            for(DumpMethodInfo dumpMethodInfo:dumpClassList.getDumpMethodInfoList()){
+                String MethodName = dumpMethodInfo.getMethodName();
+                String MethodSign = dumpMethodInfo.getMethodSign();
+                System.out.println(MethodName+":"+MethodSign);
+//                dumpMethodInfo.getContent().toByteArray()
+            }
+        }
+
     }
 
-    void dumpDexMethod(String className,String MethodName,String MethodSign){
-        dumpMethodString.Builder dumpMethod = dumpMethodString.newBuilder();
+    byte[] dumpDexMethod(String className,String MethodName,String MethodSign){
+        DumpMethodString.Builder dumpMethod = DumpMethodString.newBuilder();
         dumpMethod.setClassName(className);
         dumpMethod.setMethodName(MethodName);
         dumpMethod.setMethodSign(MethodSign);
-        dexbuff buff = iServerInface.dumpMethod(dumpMethod.build());
+        Dexbuff buff = iServerInface.dumpMethod(dumpMethod.build());
+        return buff.getContent().toByteArray();
     }
 
     void dumpDexFile(String Dir){
@@ -54,8 +59,8 @@ public class GrpcService {
             DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setDexinfo(dexInfo).build();
             DownloadFileResponse downloadFileResponse = iServerInface.downloadFile(downloadFileRequest).next();
             DexInfo dex =  downloadFileResponse.getContent();
-            List<dexbuff> dexbuffList = dex.getBuffList();
-            for(dexbuff buff :dexbuffList){
+            List<Dexbuff> dexbuffList = dex.getBuffList();
+            for(Dexbuff buff :dexbuffList){
                 ByteString data =  buff.getContent();
                 Path filePath = Paths.get(Dir, Integer.toHexString(data.hashCode())+".dex"); // 构建文件路径
                 try {

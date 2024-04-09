@@ -227,9 +227,18 @@ jbyteArray   dumpMethodByMember(JNIEnv *env, jclass cls, jobject method){
 jmethodID NativeFindJmethod(JNIEnv *env,jclass cls, jstring jmethod_name,jstring jmethod_sign){
     const char* method_name = env->GetStringUTFChars(jmethod_name, nullptr);
     const char* method_sign = env->GetStringUTFChars(jmethod_sign, nullptr);
-    jmethodID ret_jmethod =  env->GetMethodID(cls,method_name,method_sign);
+    jmethodID ret_jmethod =  env->GetStaticMethodID(cls,method_name,method_sign);
+    //找不大方法需要清理异常，否则会崩溃
     if(ret_jmethod == nullptr){
-        ret_jmethod = env->GetStaticMethodID(cls,method_name,method_sign);
+        if (env->ExceptionCheck()) {
+            env->ExceptionClear();
+        }
+        ret_jmethod = env->GetMethodID(cls,method_name,method_sign);
+        if(ret_jmethod == nullptr) {
+            if (env->ExceptionCheck()) {
+                env->ExceptionClear();
+            }
+        }
     }
     return ret_jmethod;
 }

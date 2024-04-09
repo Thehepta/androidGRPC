@@ -28,13 +28,15 @@ public class Main {
         GrpcService service = new GrpcService(channel);
 
 
-//        StringArgument className = StringArgument.newBuilder().setClassName("com.yunmai.valueoflife.MainActivity$a").build();
-//        StringArgument className = StringArgument.newBuilder().setClassName("com.ccb.start.MainActivity").build();
-        String dir = "D:\\apk\\dumpdex";
-        service.dumpDexFile(dir);
+//        String dir = "D:\\apk\\dumpdex";
+//        service.dumpDexFile(dir);
 
-//        userServiceBlockingStub.dumpClass(className);
-        
+//         byte[] dump_code_item = service.dumpDexMethod("com.hepta.androidgrpc.MainActivity","onCreate","(Landroid/os/Bundle;)V");
+         service.dumpClass("com.hepta.androidgrpc.GrpcServiceImpl");
+         System.out.println("sfewf");
+
+
+
 
         Thread.sleep(2000);
         channel.shutdown();

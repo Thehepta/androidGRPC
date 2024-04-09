@@ -41,28 +41,39 @@ service UserService {
     rpc getUsers (User) returns (stream User) {}
     rpc saveUsers (stream User) returns (User) {}
     rpc dumpdex (Empty) returns (Empty) {}
-    rpc dumpMethod (dumpMethodString) returns (dexbuff) {}
-    rpc dumpClass (StringArgument ) returns (StringArgument) {}
+    rpc dumpMethod (DumpMethodString) returns (Dexbuff) {}
+    rpc dumpClass (StringArgument ) returns (stream DumpClassInfo) {}
     rpc getCookieList (Empty ) returns (DexInfoList) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
     rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
 }
 
 
-message dumpMethodString {
+message DumpClassInfo {
+    repeated DumpMethodInfo dumpMethodInfo  = 1;
+    bool status = 2;
+}
+
+message DumpMethodInfo {
+    string methodName = 2;
+    string methodSign = 3;
+    bytes  Content = 1;
+}
+
+message DumpMethodString {
     string className = 1;
     string methodName = 2;
     string methodSign = 3;
-}
 
+}
 //Upload
 message UploadFileRequest {
-    string FileName = 1;
-    bytes Content = 2;
+  string FileName = 1;
+  bytes Content = 2;
 }
 
 message UploadFileResponse {
-    string FilePath = 1;
+  string FilePath = 1;
 }
 
 //Download
@@ -79,14 +90,14 @@ message StringArgument {
     string className = 1;
 }
 
-message dexbuff {
+message Dexbuff {
     bytes Content = 1;
 }
 
 message DexInfo {
     repeated int64 values = 1;
     string dexpath = 2;
-    repeated dexbuff buff = 3 ;
+    repeated Dexbuff buff = 3 ;
 
 }
 
