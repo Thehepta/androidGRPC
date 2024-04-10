@@ -28,17 +28,17 @@ public class GrpcService {
         iServerInface.dumpdex(empty);
     }
 
-    void dumpClass(String className){
+    DumpClassInfo dumpClass(String className){
         StringArgument classNameArg = StringArgument.newBuilder().setClassName(className).build();
-        DumpClassInfo dumpClassList = iServerInface.dumpClass(classNameArg).next();
-        if(dumpClassList.getStatus()){
-            for(DumpMethodInfo dumpMethodInfo:dumpClassList.getDumpMethodInfoList()){
-                String MethodName = dumpMethodInfo.getMethodName();
-                String MethodSign = dumpMethodInfo.getMethodSign();
-                System.out.println(MethodName+":"+MethodSign);
-//                dumpMethodInfo.getContent().toByteArray()
-            }
-        }
+        return iServerInface.dumpClass(classNameArg).next();
+//        if(dumpClassList.getStatus()){
+//            for(DumpMethodInfo dumpMethodInfo:dumpClassList.getDumpMethodInfoList()){
+//                String MethodName = dumpMethodInfo.getMethodName();
+//                String MethodSign = dumpMethodInfo.getMethodSign();
+//                System.out.println(MethodName+":"+MethodSign);
+////                dumpMethodInfo.getContent().toByteArray()
+//            }
+//        }
 
     }
 
