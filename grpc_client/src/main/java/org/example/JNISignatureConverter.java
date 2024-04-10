@@ -47,6 +47,9 @@ public class JNISignatureConverter {
         }
     }
 
+    public static String ClassNameToJNISigner(String name ) {
+        return "L" + name.replace(".", "/") + ";";
+    }
     public static void main(String[] args) {
         try {
             Method method = JNISignatureConverter.class.getDeclaredMethod("convertToJNISignature", Method.class);

@@ -39,23 +39,7 @@ public class Main {
 
 //         byte[] dump_code_item = service.dumpDexMethod("com.hepta.androidgrpc.MainActivity","onCreate","(Landroid/os/Bundle;)V");
         DumpClassInfo dumpClassList = service.dumpClass("com.hepta.androidgrpc.GrpcServiceImpl");
-        System.out.println("sfewf");
-        Map<String, FixDumpClassCodeItem> dumpClassCodeItemList = new HashMap<>();
-        if(dumpClassList.getStatus()) {
-            Map<String, FixDumpMethodCodeItem> methodCodeItems = new HashMap<>();
-            for(DumpMethodInfo dumpMethodInfo:dumpClassList.getDumpMethodInfoList()){
-                String MethodName = dumpMethodInfo.getMethodName();
-                String MethodSign = dumpMethodInfo.getMethodSign();
-                String MethodString = MethodName+MethodSign;
-                FixDumpMethodCodeItem fixDumpMethodCodeItem = new FixDumpMethodCodeItem(dumpMethodInfo.toByteArray());
-                methodCodeItems.put(MethodString,fixDumpMethodCodeItem);
-//                fixDumpClassCodeItem.methodCodeItemList.put(MethodString,fixDumpMethodCodeItem.)
-            }
-            FixDumpClassCodeItem fixDumpClassCodeItem = new FixDumpClassCodeItem(methodCodeItems);
-            dumpClassCodeItemList.put("fewfew",fixDumpClassCodeItem);
 
-        }
-        FixMain fixMain = new FixMain();
 //        fixMain.Main1();
 
 
