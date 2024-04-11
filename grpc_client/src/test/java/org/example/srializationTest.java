@@ -1,59 +1,55 @@
 package org.example;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.kone.pbdemo.protocol.*;
+import com.kone.pbdemo.protocol.DumpClassInfo;
+import com.kone.pbdemo.protocol.DumpMethodInfo;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.jf.baksmali.fix.FixDumpClassCodeItem;
 import org.jf.baksmali.fix.FixDumpMethodCodeItem;
-import org.jf.baksmali.fix.FixMain;
 
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
-public class Main {
+public class srializationTest {
 
 
 
-    public static void  DownloadFile(UserServiceGrpc.UserServiceBlockingStub userServiceBlockingStub, long[] cookie, String outDir)
-    {
-//        DownloadFileRequest  downloadRequest =  DownloadFileRequest.newBuilder().setCookie(cookie).build();
-////        downloadRequest.getFilePath()
-//        userServiceBlockingStub.downloadFile(downloadRequest);
+    public static void main(String[] arg) {
 
+        srializationTest test = new srializationTest();
+        String host = "192.168.0.86";
+
+        test.srialization(host);
+        test.desrialization();
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    void desrialization (){
 
+        Map<String, FixDumpClassCodeItem> fixDexDumpClassCodeItem = null;
+        try {
+            FileInputStream fileIn = new FileInputStream("fix.data");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            fixDexDumpClassCodeItem = (Map<String, FixDumpClassCodeItem>) in.readObject();
+            in.close();
+            fileIn.close();
+            System.out.println("Map deserialized successfully.");
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        for (Map.Entry<String, FixDumpClassCodeItem> entry : fixDexDumpClassCodeItem.entrySet()) {
 
-        String host = "192.168.0.86";
-        int port = 9091;
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
-        GrpcService service = new GrpcService(channel);
-
-
-        String dir = "D:\\apk\\dumpdex";
-        service.dumpDexFile(dir);
-
-//         byte[] dump_code_item = service.dumpDexMethod("com.hepta.androidgrpc.MainActivity","onCreate","(Landroid/os/Bundle;)V");
-        DumpClassInfo dumpClassList = service.dumpClass("com.hepta.androidgrpc.GrpcServiceImpl");
-        DumpClassInfo dumpClassList2 = service.dumpClass("com.hepta.androidgrpc.dump");
-        DumpClassInfo dumpClassList3 = service.dumpClass("com.hepta.androidgrpc.JNISignatureConverter");
-        DumpClassInfo dumpClassList4 = service.dumpClass("com.hepta.androidgrpc.LoadEntry");
-        DumpClassInfo dumpClassList5 = service.dumpClass("com.hepta.androidgrpc.MainActivity");
-
-//        fixMain.Main1();
-
-
-        Thread.sleep(2000);
-        channel.shutdown();
+            String key = entry.getKey();
+            FixDumpClassCodeItem fixDumpClassCodeItem = entry.getValue();
+            System.out.println("clsName: " + key );
+            for (Map.Entry<String, FixDumpMethodCodeItem> Methodentry : fixDumpClassCodeItem.methodCodeItemList.entrySet()) {
+                String methodString = Methodentry.getKey();
+                System.out.println("methodString: " + methodString );
+            }
+        }
     }
 
-
-    public static void dumpText(){
-        String host = "192.168.0.86";
+    void srialization(String host){
         int port = 9091;
         ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
         GrpcService service = new GrpcService(channel);
@@ -81,8 +77,17 @@ public class Main {
             }
             FixDumpClassCodeItem fixDumpClassCodeItem = new FixDumpClassCodeItem(methodCodeItems);
             dumpClassCodeItemList.put(classTypeString,fixDumpClassCodeItem);
+        }
 
+        try {
+            FileOutputStream fileOut = new FileOutputStream("fix.data");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(dumpClassCodeItemList);
+            out.close();
+            fileOut.close();
+            System.out.println("Map serialized successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
-
 }

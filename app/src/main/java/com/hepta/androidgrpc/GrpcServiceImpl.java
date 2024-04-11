@@ -20,6 +20,7 @@ import com.kone.pbdemo.protocol.DumpMethodString;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 
@@ -130,6 +131,10 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
             classInfobuilder.setStatus(true);
             Method[] Declaredmethods =  cls.getDeclaredMethods();
             for (Method method :Declaredmethods ) {
+                int modifiers = method.getModifiers();
+                if(Modifier.isNative(modifiers)){
+                    continue;
+                }
                 byte[] MethodCodeItem = dump.dumpMethodByMember(method);
                 DumpMethodInfo.Builder methodInfobuilder = DumpMethodInfo.newBuilder();
                 String jniSignature = JNISignatureConverter.convertToJNISignature(method);

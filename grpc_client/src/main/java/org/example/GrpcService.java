@@ -32,7 +32,6 @@ public class GrpcService {
         StringArgument classNameArg = StringArgument.newBuilder().setClassName(className).build();
         DumpClassInfo dumpClassList = iServerInface.dumpClass(classNameArg).next();
         if (dumpClassList.getStatus()) {
-
             return dumpClassList;
         }
         return null;
@@ -52,6 +51,7 @@ public class GrpcService {
         DexInfoList dexInfoList =  iServerInface.getCookieList(empty);
 
         for(DexInfo dexInfo : dexInfoList.getDexinfoList()){
+            System.out.println("android app dex path: "+dexInfo.getDexpath());
             DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setDexinfo(dexInfo).build();
             DownloadFileResponse downloadFileResponse = iServerInface.downloadFile(downloadFileRequest).next();
             DexInfo dex =  downloadFileResponse.getContent();
@@ -62,7 +62,7 @@ public class GrpcService {
                 try {
                     Files.createDirectories(filePath.getParent());
                     Files.write(filePath, data.toByteArray(), StandardOpenOption.CREATE);
-                    System.out.println("dex dump successfule path:"+filePath.toAbsolutePath());
+                    System.out.println("local dump successfule To path:"+filePath.toAbsolutePath());
                 } catch (IOException e) {
                     System.err.println("dex dump erroe: " + e.getMessage());
                 }
