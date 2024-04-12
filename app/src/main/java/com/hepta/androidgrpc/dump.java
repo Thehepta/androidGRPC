@@ -106,8 +106,7 @@ public class dump {
 
         return cookieListMpas;
     }
-    public static void dumpdex(Context context) {
-
+    public static void dumpdexToLocal(Context context) {
 
         File pathFile=new File(context.getFilesDir().getAbsolutePath()+"/dump");
         if(!pathFile.exists()){
@@ -146,7 +145,7 @@ public class dump {
                             if (dexFile != null) {
                                 //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
                                 long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
-                                List<byte[]> dexflie_list =  dumpDexBuffListByCookie(cookie);
+                                dumpDexToLocalByCookie(cookie,pathFile.getAbsolutePath());
                                 Log.e("rzx","");
                             }
                         }
@@ -162,7 +161,7 @@ public class dump {
 
 
     public static native List<byte[]> dumpDexBuffListByCookie(long[] cookie);
-    public static native void dumpDexByCookie(long[] cookie,String dumpDir);
+    public static native void dumpDexToLocalByCookie(long[] cookie,String dumpDir);
     public static native ClassLoader[] getBaseDexClassLoaderList();
     public static native byte[] dumpMethodByMember(Member method);
     public static native byte[] dumpMethodByString(Class<?> cls, String methodName, String methodSign);

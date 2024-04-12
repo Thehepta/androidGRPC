@@ -100,7 +100,7 @@ jobject dumpDexBuffListByCookie(JNIEnv *env, jclass clazz, jlongArray cookie) {
     return arrayList;
 
 }
-void dumpDexByCookie(JNIEnv *env, jclass thiz, jlongArray cookie,jstring jdumpDir) {
+void dumpDexToLocalByCookie(JNIEnv *env, jclass thiz, jlongArray cookie,jstring jdumpDir) {
     LOGV("dumpDexByCookie start\n");
 
     // TODO: implement dumpDexByCookie()
@@ -265,9 +265,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
             {"getClassLoaderList", "()[Ljava/lang/ClassLoader;",(void*)getClassLoaderList},
             {"dumpMethodByMember", "(Ljava/lang/reflect/Member;)[B",(void*)dumpMethodByMember},
             {"dumpMethodByString", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/String;)[B",(void*)dumpMethodByString},
-            {"dumpDexByCookie", "([JLjava/lang/String;)V", (void*)dumpDexByCookie},
+            {"dumpDexToLocalByCookie", "([JLjava/lang/String;)V", (void*)dumpDexToLocalByCookie},
             {"dumpDexBuffListByCookie", "([J)Ljava/util/List;", (void*)dumpDexBuffListByCookie},
-//            {"AutodumpDex", "()V", (void*)AutodumpDex},
     };
     env->RegisterNatives(classTest, methods, sizeof(methods)/sizeof(JNINativeMethod));
 

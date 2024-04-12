@@ -35,6 +35,7 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     public String argument;
     public ClassLoader [] classLoaders;
     public GrpcServiceImpl(Context ctx,String source, String argument){
+        dump.Entry(ctx,source,argument);
         classLoaders = dump.getBaseDexClassLoaderList();
         context = ctx;
         this.source = source;
@@ -53,62 +54,10 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     }
 
     @Override
-    public void getUser(User request, StreamObserver<User> responseObserver) {
-        System.out.println(request);
-        User user = User.newBuilder()
-                .setName("response name")
-                .build();
-        responseObserver.onNext(user);
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getUsers(User request, StreamObserver<User> responseObserver) {
-        System.out.println("get users");
-        System.out.println(request);
-        User user = User.newBuilder()
-                .setName("user1")
-                .build();
-        User user2 = User.newBuilder()
-                .setName("user2")
-                .build();
-        responseObserver.onNext(user);
-        responseObserver.onNext(user2);
-
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public StreamObserver<User> saveUsers(StreamObserver<User> responseObserver) {
-
-        return new StreamObserver<User>() {
-            @Override
-            public void onNext(User user) {
-                System.out.println("get saveUsers list ---->");
-                System.out.println(user);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                System.out.println("saveUsers error " + throwable.getMessage());
-            }
-
-            @Override
-            public void onCompleted() {
-                User user = User.newBuilder()
-                        .setName("saveUsers user1")
-                        .build();
-                responseObserver.onNext(user);
-                responseObserver.onCompleted();
-            }
-        };
-    }
-
-    @Override
-    public void dumpdex(Empty request, StreamObserver<Empty> responseObserver) {
+    public void dexDumpToLocal(Empty request, StreamObserver<Empty> responseObserver) {
         Log.e("rzx","dumpdex");
         dump.Entry(context,source,argument);
-        dump.dumpdex(context);
+        dump.dumpdexToLocal(context);
         responseObserver.onNext(request);
         responseObserver.onCompleted();
     }
@@ -170,15 +119,20 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
             for(long k_long:ck){
                 cookie_build.addValues(k_long);
             }
-            cookie_build.setDexpath(ck_list.get(ck));
+            String dex_path = ck_list.get(ck);
+            if(dex_path == null){
+                cookie_build.setDexpath("[none]");
+            }
             cooki_list_build.addDexinfo(cookie_build.build());
         }
         responseObserver.onNext(cooki_list_build.build());
         responseObserver.onCompleted();
     }
 
+
+
     @Override
-    public void downloadFile(DownloadFileRequest request, StreamObserver<DownloadFileResponse> responseObserver) {
+    public void dexDumpDownload(DownloadFileRequest request, StreamObserver<DownloadFileResponse> responseObserver) {
         DexInfo cookie = request.getDexinfo();
         long[] longArray = cookie.getValuesList().stream().mapToLong(Long::longValue).toArray();
         List<byte[]> dexfile_list= dump.dumpDexBuffListByCookie(longArray);

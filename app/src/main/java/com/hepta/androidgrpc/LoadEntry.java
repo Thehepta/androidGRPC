@@ -1,6 +1,7 @@
 package com.hepta.androidgrpc;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.IOException;
 
@@ -23,7 +24,7 @@ public class LoadEntry {
                             .maxInboundMessageSize(Integer.MAX_VALUE)
                             .build()
                             .start();
-                    System.out.println("server started, port : " + port);
+                    Log.e("LoadEntry","server started, port : " + port);
                     server.awaitTermination();
                 } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);

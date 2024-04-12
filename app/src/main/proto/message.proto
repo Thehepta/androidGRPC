@@ -37,15 +37,12 @@ message DexInfoList {
 
 
 service UserService {
-    rpc getUser (User) returns (User) {}
-    rpc getUsers (User) returns (stream User) {}
-    rpc saveUsers (stream User) returns (User) {}
-    rpc dumpdex (Empty) returns (Empty) {}
+    rpc dexDumpToLocal (Empty) returns (Empty) {}
     rpc dumpMethod (DumpMethodString) returns (Dexbuff) {}
     rpc dumpClass (StringArgument ) returns (stream DumpClassInfo) {}
     rpc getCookieList (Empty ) returns (DexInfoList) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
-    rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse);
+    rpc dexDumpDownload(DownloadFileRequest) returns (stream DownloadFileResponse);
 }
 
 

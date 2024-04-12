@@ -24,8 +24,7 @@ public class GrpcService {
 
     void dumpdex(){
         Empty empty = Empty.newBuilder().build();
-
-        iServerInface.dumpdex(empty);
+        iServerInface.dexDumpToLocal(empty);
     }
 
     DumpClassInfo dumpClass(String className) {
@@ -53,7 +52,7 @@ public class GrpcService {
         for(DexInfo dexInfo : dexInfoList.getDexinfoList()){
             System.out.println("android app dex path: "+dexInfo.getDexpath());
             DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setDexinfo(dexInfo).build();
-            DownloadFileResponse downloadFileResponse = iServerInface.downloadFile(downloadFileRequest).next();
+            DownloadFileResponse downloadFileResponse = iServerInface.dexDumpDownload(downloadFileRequest).next();
             DexInfo dex =  downloadFileResponse.getContent();
             List<Dexbuff> dexbuffList = dex.getBuffList();
             for(Dexbuff buff :dexbuffList){
