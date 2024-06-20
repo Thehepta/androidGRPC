@@ -1,7 +1,7 @@
 //
 // Created by thehepta on 2023/8/13.
 //
-
+#pragma once
 #include <ostream>
 
 

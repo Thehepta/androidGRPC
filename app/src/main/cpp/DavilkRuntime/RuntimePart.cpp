@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <sys/system_properties.h>
 #include "runtime/class_linker.h"
+#include "runtime/scoped_thread_state_change.h"
+#include "art_method.h"
 #include <jni.h>
 
 //#define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_INFO, "FreeReflect", __VA_ARGS__))
@@ -140,6 +142,7 @@ jobjectArray getClassLoaders(JNIEnv *env, jint targetSdkVersion) {
         jboolean re =  env->IsInstanceOf(*it,ClassLoader_cls);
         if(!re){
             it = vectorObject.erase(it);
+//            env->DeleteGlobalRef(*it);
         } else{
             ++it;
         }

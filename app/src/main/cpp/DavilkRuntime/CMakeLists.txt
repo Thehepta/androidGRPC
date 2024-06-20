@@ -36,8 +36,10 @@ add_library(DavilkRuntime SHARED
         RuntimePart.cpp
         elf_symbol_resolver.cpp
         art_method.cpp
+        method.cpp
         jvmti.cpp
-        dumpdex.cpp)
+        dumpdex.cpp
+        runtime/scoped_thread_state_change.cpp)
 
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this

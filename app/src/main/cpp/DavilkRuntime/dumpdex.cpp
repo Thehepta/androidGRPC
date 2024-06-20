@@ -48,8 +48,6 @@ static bool ConvertJavaArrayToDexFiles(
         /*out*/ std::vector<const DexFile*>& dex_files,
         /*out*/ const OatFile*& oat_file) {
     jarray array = reinterpret_cast<jarray>(cookie_arrayObject);
-
-
     jsize array_size = env->GetArrayLength(array);
     if (env->ExceptionCheck() == JNI_TRUE) {
         return false;
