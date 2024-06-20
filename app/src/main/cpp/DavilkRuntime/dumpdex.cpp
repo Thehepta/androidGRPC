@@ -246,6 +246,17 @@ jbyteArray dumpMethodByString(JNIEnv *env, jclass thiz, jclass cls, jstring meth
     return dumpMethod_code_item(env,artMethod);
 }
 
+extern "C"
+JNIEXPORT jbyteArray JNICALL getDexBuffbyCookieLong(JNIEnv *env, jclass clazz, jlong cookieLong) {
+    if (cookieLong != 0) {
+
+        const DexFile* dex_file =   reinterpret_cast64<const DexFile*>(cookieLong);
+        jbyteArray byteArray =env->NewByteArray( dex_file->size_);
+        env->SetByteArrayRegion(byteArray, 0, dex_file->size_,reinterpret_cast<const jbyte *>(dex_file->begin_));
+        return byteArray;
+    }
+
+}
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
@@ -264,6 +275,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
             {"dumpMethodByMember", "(Ljava/lang/reflect/Member;)[B",(void*)dumpMethodByMember},
             {"dumpMethodByString", "(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/String;)[B",(void*)dumpMethodByString},
             {"dumpDexToLocalByCookie", "([JLjava/lang/String;)V", (void*)dumpDexToLocalByCookie},
+            {"getDexBuffbyCookieLong", "(J)[B", (void*)getDexBuffbyCookieLong},
             {"dumpDexBuffListByCookie", "([J)Ljava/util/List;", (void*)dumpDexBuffListByCookie},
     };
     env->RegisterNatives(classTest, methods, sizeof(methods)/sizeof(JNINativeMethod));
@@ -272,6 +284,5 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     return JNI_VERSION_1_6;
 }
-
 
 

@@ -55,21 +55,8 @@ public class GrpcService {
             long[] Cookie_longArray = dexInfo.getValuesList().stream().mapToLong(Long::longValue).toArray();
             for(int i = kDexFileIndexStart;i<Cookie_longArray.length;++i){
                 long DexFile_Point = Cookie_longArray[i];
-                iServerInface.dexDumpByDexFilePoint(DexFile_Point);
-            }
-
-
-
-
-
-
-
-
-            DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setDexinfo(dexInfo).build();
-            DownloadFileResponse downloadFileResponse = iServerInface.dexDumpDownload(downloadFileRequest).next();
-            DexInfo dex =  downloadFileResponse.getContent();
-            List<Dexbuff> dexbuffList = dex.getBuffList();
-            for(Dexbuff buff :dexbuffList){
+                DexFilePoint dexFilePoint = DexFilePoint.newBuilder().setValues(DexFile_Point).build();
+                Dexbuff buff = iServerInface.dexDumpByDexFilePoint(dexFilePoint).next();
                 ByteString data =  buff.getContent();
                 Path filePath = Paths.get(Dir, Integer.toHexString(data.hashCode())+".dex"); // 构建文件路径
                 try {
@@ -79,8 +66,23 @@ public class GrpcService {
                 } catch (IOException e) {
                     System.err.println("dex dump erroe: " + e.getMessage());
                 }
-
             }
+//            DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setDexinfo(dexInfo).build();
+//            DownloadFileResponse downloadFileResponse = iServerInface.dexDumpDownload(downloadFileRequest).next();
+//            DexInfo dex =  downloadFileResponse.getContent();
+//            List<Dexbuff> dexbuffList = dex.getBuffList();
+//            for(Dexbuff buff :dexbuffList){
+//                ByteString data =  buff.getContent();
+//                Path filePath = Paths.get(Dir, Integer.toHexString(data.hashCode())+".dex"); // 构建文件路径
+//                try {
+//                    Files.createDirectories(filePath.getParent());
+//                    Files.write(filePath, data.toByteArray(), StandardOpenOption.CREATE);
+//                    System.out.println("local dump successfule To path:"+filePath.toAbsolutePath());
+//                } catch (IOException e) {
+//                    System.err.println("dex dump erroe: " + e.getMessage());
+//                }
+//
+//            }
         }
     }
 

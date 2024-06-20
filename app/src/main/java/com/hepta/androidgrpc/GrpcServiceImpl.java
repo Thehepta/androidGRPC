@@ -1,5 +1,7 @@
 package com.hepta.androidgrpc;
 
+import static com.hepta.androidgrpc.dump.getDexBuffbyCookieLong;
+
 import android.content.Context;
 import android.util.Log;
 
@@ -113,14 +115,14 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
 
     @Override
     public void getCookieList(Empty request, StreamObserver<DexInfoList> responseObserver) {
-        Map<long[],String> ck_list = dump.getCookieList(context);
+        Map<long[],String> cookieList = dump.getCookieList(context);
         DexInfoList.Builder cooki_list_build =  DexInfoList.newBuilder();
-        for(long[] ck:ck_list.keySet() ){
+        for(long[] cook:cookieList.keySet() ){
             DexInfo.Builder cookie_build = DexInfo.newBuilder();
-            for(long k_long:ck){
+            for(long k_long:cook){
                 cookie_build.addValues(k_long);
             }
-            String dex_path = ck_list.get(ck);
+            String dex_path = cookieList.get(cook);
             if(dex_path == null){
                 cookie_build.setDexpath("[none]");
             }
@@ -133,6 +135,10 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     @Override
     public void dexDumpByDexFilePoint(DexFilePoint request, StreamObserver<Dexbuff> responseObserver) {
         long dexFilePoint =  request.getValues();
+        byte[] buff = getDexBuffbyCookieLong(dexFilePoint);
+        Dexbuff dexbuff = Dexbuff.newBuilder().setContent(ByteString.copyFrom(buff)).build();
+        responseObserver.onNext(dexbuff);
+        responseObserver.onCompleted();
     }
 
     @Override
@@ -149,6 +155,7 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         responseObserver.onNext(downloadFileResponse);
         responseObserver.onCompleted();
     }
+
 
     @Override
     public void dumpMethod(DumpMethodString request, StreamObserver<Dexbuff> responseObserver) {

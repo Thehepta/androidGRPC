@@ -3,7 +3,7 @@ package org.example;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
-public class dumpDex {
+public class dumpDexToPC {
 
     public static void main(String[] args) {
 

@@ -162,6 +162,7 @@ public class dump {
 
     public static native List<byte[]> dumpDexBuffListByCookie(long[] cookie);
     public static native void dumpDexToLocalByCookie(long[] cookie,String dumpDir);
+    public static native byte[] getDexBuffbyCookieLong(long cookie);
     public static native ClassLoader[] getBaseDexClassLoaderList();
     public static native byte[] dumpMethodByMember(Member method);
     public static native byte[] dumpMethodByString(Class<?> cls, String methodName, String methodSign);
