@@ -16,6 +16,8 @@ import java.util.List;
 
 public class GrpcService {
 
+    int kOatFileIndex = 0;
+    int kDexFileIndexStart = 1;
     UserServiceGrpc.UserServiceBlockingStub  iServerInface;
 
     GrpcService(ManagedChannel channel){
@@ -48,9 +50,21 @@ public class GrpcService {
     void dumpDexFile(String Dir){
         Empty empty = Empty.newBuilder().build();
         DexInfoList dexInfoList =  iServerInface.getCookieList(empty);
-
         for(DexInfo dexInfo : dexInfoList.getDexinfoList()){
             System.out.println("android app dex path: "+dexInfo.getDexpath());
+            long[] Cookie_longArray = dexInfo.getValuesList().stream().mapToLong(Long::longValue).toArray();
+            for(int i = kDexFileIndexStart;i<Cookie_longArray.length;++i){
+                long DexFile_Point = Cookie_longArray[i];
+                iServerInface.dexDumpByDexFilePoint(DexFile_Point);
+            }
+
+
+
+
+
+
+
+
             DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setDexinfo(dexInfo).build();
             DownloadFileResponse downloadFileResponse = iServerInface.dexDumpDownload(downloadFileRequest).next();
             DexInfo dex =  downloadFileResponse.getContent();

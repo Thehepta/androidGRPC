@@ -43,6 +43,7 @@ service UserService {
     rpc getCookieList (Empty ) returns (DexInfoList) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
     rpc dexDumpDownload(DownloadFileRequest) returns (stream DownloadFileResponse);
+    rpc dexDumpByDexFilePoint(DexFilePoint) returns (stream Dexbuff);
 }
 
 
@@ -86,7 +87,9 @@ message DownloadFileResponse {
 message StringArgument {
     string className = 1;
 }
-
+message DexFilePoint {
+    int64 values = 1;
+}
 message Dexbuff {
     bytes Content = 1;
 }

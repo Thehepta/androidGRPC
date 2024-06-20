@@ -5,6 +5,7 @@ import android.util.Log;
 
 
 import com.google.protobuf.ByteString;
+import com.kone.pbdemo.protocol.DexFilePoint;
 import com.kone.pbdemo.protocol.DexInfo;
 import com.kone.pbdemo.protocol.DexInfoList;
 import com.kone.pbdemo.protocol.DownloadFileRequest;
@@ -129,7 +130,10 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         responseObserver.onCompleted();
     }
 
-
+    @Override
+    public void dexDumpByDexFilePoint(DexFilePoint request, StreamObserver<Dexbuff> responseObserver) {
+        long dexFilePoint =  request.getValues();
+    }
 
     @Override
     public void dexDumpDownload(DownloadFileRequest request, StreamObserver<DownloadFileResponse> responseObserver) {
