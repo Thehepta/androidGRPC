@@ -31,18 +31,12 @@ enum UserType {
     BUSINESS_USER = 2;
 };
 
-message DexInfoList {
-    repeated DexInfo dexinfo = 1;
-}
-
-
 service UserService {
     rpc dexDumpToLocal (Empty) returns (Empty) {}
     rpc dumpMethod (DumpMethodString) returns (Dexbuff) {}
     rpc dumpClass (StringArgument ) returns (stream DumpClassInfo) {}
-    rpc getCookieList (Empty ) returns (DexInfoList) {}
+    rpc getDexClassLoaderList (Empty ) returns (DexClassLoaders) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
-    rpc dexDumpDownload(DownloadFileRequest) returns (stream DownloadFileResponse);
     rpc dexDumpByDexFilePoint(DexFilePoint) returns (stream Dexbuff);
 }
 
@@ -56,6 +50,8 @@ message DumpMethodInfo {
     string methodName = 2;
     string methodSign = 3;
     bytes  Content = 1;
+    bool status = 4;
+
 }
 
 message DumpMethodString {
@@ -66,21 +62,12 @@ message DumpMethodString {
 }
 //Upload
 message UploadFileRequest {
-  string FileName = 1;
-  bytes Content = 2;
+    string FileName = 1;
+    bytes Content = 2;
 }
 
 message UploadFileResponse {
-  string FilePath = 1;
-}
-
-//Download
-message DownloadFileRequest {
-    DexInfo dexinfo = 1;
-}
-
-message DownloadFileResponse {
-    DexInfo Content = 1;
+    string FilePath = 1;
 }
 
 
@@ -93,11 +80,15 @@ message DexFilePoint {
 message Dexbuff {
     bytes Content = 1;
 }
+message DexClassLoaders{
+    repeated DexClassLoaderInfo dexClassLoadInfo = 1;
+}
 
-message DexInfo {
+message DexClassLoaderInfo {
     repeated int64 values = 1;
     string dexpath = 2;
-    repeated Dexbuff buff = 3 ;
+    string classLoadType = 3;
+    repeated Dexbuff buff = 4 ;
 
 }
 

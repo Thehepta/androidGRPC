@@ -7,16 +7,14 @@ import android.util.Log;
 
 
 import com.google.protobuf.ByteString;
+import com.kone.pbdemo.protocol.DexClassLoaderInfo;
+import com.kone.pbdemo.protocol.DexClassLoaders;
 import com.kone.pbdemo.protocol.DexFilePoint;
-import com.kone.pbdemo.protocol.DexInfo;
-import com.kone.pbdemo.protocol.DexInfoList;
-import com.kone.pbdemo.protocol.DownloadFileRequest;
-import com.kone.pbdemo.protocol.DownloadFileResponse;
+
 import com.kone.pbdemo.protocol.DumpClassInfo;
 import com.kone.pbdemo.protocol.DumpMethodInfo;
 import com.kone.pbdemo.protocol.Empty;
 import com.kone.pbdemo.protocol.StringArgument;
-import com.kone.pbdemo.protocol.User;
 import com.kone.pbdemo.protocol.UserServiceGrpc;
 import com.kone.pbdemo.protocol.Dexbuff;
 import com.kone.pbdemo.protocol.DumpMethodString;
@@ -24,7 +22,6 @@ import com.kone.pbdemo.protocol.DumpMethodString;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
 import java.util.Map;
 
 import io.grpc.stub.StreamObserver;
@@ -39,17 +36,19 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     public ClassLoader [] classLoaders;
     public GrpcServiceImpl(Context ctx,String source, String argument){
         dump.Entry(ctx,source,argument);
-        classLoaders = dump.getBaseDexClassLoaderList();
         context = ctx;
         this.source = source;
         this.argument = argument;
     }
 
     public Class<?> AndroidFindClass(String name){
+        if (classLoaders == null) {
+            classLoaders = dump.getClassLoaderList();
+        }
         for (ClassLoader classLoader:classLoaders){
             try {
                 return classLoader.loadClass(name);
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException ignored) {
 
             }
         }
@@ -65,20 +64,46 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         responseObserver.onCompleted();
     }
 
+
+
+    @Override
+    public void getDexClassLoaderList(Empty request, StreamObserver<DexClassLoaders> responseObserver) {
+        Map<long[],AndroidClassLoaderInfo> dexClassLoaderCookieMpas = dump.getDexClassLoaderCookieMpas(context);
+        DexClassLoaders.Builder dexClassLoaderInfoList_build =  DexClassLoaders.newBuilder();
+        for(long[] dexClassLoaderCookie:dexClassLoaderCookieMpas.keySet() ){
+            DexClassLoaderInfo.Builder dexClassLoaderCookie_build = DexClassLoaderInfo.newBuilder();
+            for(long dexCookie:dexClassLoaderCookie){
+                dexClassLoaderCookie_build.addValues(dexCookie);
+            }
+            AndroidClassLoaderInfo classLoaderInfo = dexClassLoaderCookieMpas.get(dexClassLoaderCookie);
+            if(classLoaderInfo != null){
+                dexClassLoaderCookie_build.setDexpath(classLoaderInfo.FilePatch);
+                dexClassLoaderCookie_build.setClassLoadType(classLoaderInfo.ClassType);
+            }
+            dexClassLoaderInfoList_build.addDexClassLoadInfo(dexClassLoaderCookie_build.build());
+        }
+        responseObserver.onNext(dexClassLoaderInfoList_build.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void dexDumpByDexFilePoint(DexFilePoint request, StreamObserver<Dexbuff> responseObserver) {
+        long dexFilePoint =  request.getValues();
+        byte[] buff = getDexBuffbyCookieLong(dexFilePoint);
+        Dexbuff dexbuff = Dexbuff.newBuilder().setContent(ByteString.copyFrom(buff)).build();
+        responseObserver.onNext(dexbuff);
+        responseObserver.onCompleted();
+    }
+
+
     @Override
     public void dumpClass(StringArgument request, StreamObserver<DumpClassInfo> responseObserver) {
         String clsName = request.getClassName();
         DumpClassInfo.Builder classInfobuilder = DumpClassInfo.newBuilder();
 
         Log.e("rzx","dumpClass:"+clsName);
-        Class<?> cls = null;
-        for (ClassLoader classLoader:classLoaders) {
-            try {
-                cls =  classLoader.loadClass(clsName);
-            } catch (ClassNotFoundException e) {
-                continue;
-            }
-        }
+        Class<?> cls = AndroidFindClass(clsName);
+
         if(cls != null){
             classInfobuilder.setStatus(true);
             Method[] Declaredmethods =  cls.getDeclaredMethods();
@@ -112,50 +137,6 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         responseObserver.onNext(classInfobuilder.build());
         responseObserver.onCompleted();
     }
-
-    @Override
-    public void getCookieList(Empty request, StreamObserver<DexInfoList> responseObserver) {
-        Map<long[],String> cookieList = dump.getCookieList(context);
-        DexInfoList.Builder cooki_list_build =  DexInfoList.newBuilder();
-        for(long[] cook:cookieList.keySet() ){
-            DexInfo.Builder cookie_build = DexInfo.newBuilder();
-            for(long k_long:cook){
-                cookie_build.addValues(k_long);
-            }
-            String dex_path = cookieList.get(cook);
-            if(dex_path == null){
-                cookie_build.setDexpath("[none]");
-            }
-            cooki_list_build.addDexinfo(cookie_build.build());
-        }
-        responseObserver.onNext(cooki_list_build.build());
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void dexDumpByDexFilePoint(DexFilePoint request, StreamObserver<Dexbuff> responseObserver) {
-        long dexFilePoint =  request.getValues();
-        byte[] buff = getDexBuffbyCookieLong(dexFilePoint);
-        Dexbuff dexbuff = Dexbuff.newBuilder().setContent(ByteString.copyFrom(buff)).build();
-        responseObserver.onNext(dexbuff);
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void dexDumpDownload(DownloadFileRequest request, StreamObserver<DownloadFileResponse> responseObserver) {
-        DexInfo cookie = request.getDexinfo();
-        long[] longArray = cookie.getValuesList().stream().mapToLong(Long::longValue).toArray();
-        List<byte[]> dexfile_list= dump.dumpDexBuffListByCookie(longArray);
-        DexInfo.Builder ret_dexinfo_builder = DexInfo.newBuilder(cookie);
-        for(byte[] dex:dexfile_list){
-            Dexbuff dex_buff = Dexbuff.newBuilder().setContent(ByteString.copyFrom(dex)).build();
-            ret_dexinfo_builder.addBuff(dex_buff);
-        }
-        DownloadFileResponse downloadFileResponse = DownloadFileResponse.newBuilder().setContent(ret_dexinfo_builder.build()).build();
-        responseObserver.onNext(downloadFileResponse);
-        responseObserver.onCompleted();
-    }
-
 
     @Override
     public void dumpMethod(DumpMethodString request, StreamObserver<Dexbuff> responseObserver) {

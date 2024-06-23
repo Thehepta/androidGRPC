@@ -49,42 +49,25 @@ public class GrpcService {
 
     void dumpDexFile(String Dir){
         Empty empty = Empty.newBuilder().build();
-        DexInfoList dexInfoList =  iServerInface.getCookieList(empty);
-        for(DexInfo dexInfo : dexInfoList.getDexinfoList()){
-            System.out.println("android app dex path: "+dexInfo.getDexpath());
-            long[] Cookie_longArray = dexInfo.getValuesList().stream().mapToLong(Long::longValue).toArray();
-            for(int i = kDexFileIndexStart;i<Cookie_longArray.length;++i){
-                long DexFile_Point = Cookie_longArray[i];
+        DexClassLoaders dexInfoList =  iServerInface.getDexClassLoaderList(empty);
+        for(DexClassLoaderInfo dexInfo : dexInfoList.getDexClassLoadInfoList()){
+            System.out.println("android dex class path: "+dexInfo.getDexpath());
+            System.out.println("android dex class type: "+dexInfo.getClassLoadType());
+            long[] CookieList = dexInfo.getValuesList().stream().mapToLong(Long::longValue).toArray();
+            for(int i = kDexFileIndexStart;i<CookieList.length;++i){
+                long DexFile_Point = CookieList[i];
                 DexFilePoint dexFilePoint = DexFilePoint.newBuilder().setValues(DexFile_Point).build();
                 Dexbuff buff = iServerInface.dexDumpByDexFilePoint(dexFilePoint).next();
                 ByteString data =  buff.getContent();
-                Path filePath = Paths.get(Dir, Integer.toHexString(data.hashCode())+".dex"); // 构建文件路径
+                Path filePath = Paths.get(Dir, Long.toHexString(DexFile_Point)+".dex"); // 构建文件路径
                 try {
                     Files.createDirectories(filePath.getParent());
                     Files.write(filePath, data.toByteArray(), StandardOpenOption.CREATE);
-                    System.out.println("local dump successfule To path:"+filePath.toAbsolutePath());
+                    System.out.println("    dumpdex successfule To path -> : "+filePath.toAbsolutePath());
                 } catch (IOException e) {
-                    System.err.println("dex dump erroe: " + e.getMessage());
+                    System.err.println("    dex dump erroe: " + e.getMessage());
                 }
             }
-//            DownloadFileRequest downloadFileRequest = DownloadFileRequest.newBuilder().setDexinfo(dexInfo).build();
-//            DownloadFileResponse downloadFileResponse = iServerInface.dexDumpDownload(downloadFileRequest).next();
-//            DexInfo dex =  downloadFileResponse.getContent();
-//            List<Dexbuff> dexbuffList = dex.getBuffList();
-//            for(Dexbuff buff :dexbuffList){
-//                ByteString data =  buff.getContent();
-//                Path filePath = Paths.get(Dir, Integer.toHexString(data.hashCode())+".dex"); // 构建文件路径
-//                try {
-//                    Files.createDirectories(filePath.getParent());
-//                    Files.write(filePath, data.toByteArray(), StandardOpenOption.CREATE);
-//                    System.out.println("local dump successfule To path:"+filePath.toAbsolutePath());
-//                } catch (IOException e) {
-//                    System.err.println("dex dump erroe: " + e.getMessage());
-//                }
-//
-//            }
         }
     }
-
-
 }

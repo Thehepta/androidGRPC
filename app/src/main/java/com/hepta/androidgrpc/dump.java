@@ -3,6 +3,8 @@ package com.hepta.androidgrpc;
 import android.content.Context;
 import android.util.Log;
 
+import org.checkerframework.checker.units.qual.A;
+
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 import dalvik.system.BaseDexClassLoader;
 import dalvik.system.DexFile;
+import dalvik.system.PathClassLoader;
 
 public class dump {
 
@@ -55,13 +58,11 @@ public class dump {
         }
     }
 
-    public static Map<long[],String> getCookieList(Context context) {
-        Map<long[],String> cookieListMpas =new HashMap<>();
+    public static Map<long[],AndroidClassLoaderInfo> getDexClassLoaderCookieMpas(Context context) {
+        Map<long[],AndroidClassLoaderInfo> DexClassLoaderCookieMpas =new HashMap<>();
 
         BaseDexClassLoader[] classLoaders = (BaseDexClassLoader[]) getBaseDexClassLoaderList();
         try {
-            Log.e("dump","class xunhuan");
-            //TODO:to get 'pathList' field and 'dexElements' field by reflection.
             //private final DexPathList pathList;
             Class<?> baseDexClassLoaderClass = Class.forName("dalvik.system.BaseDexClassLoader");
             Field pathListField = baseDexClassLoaderClass.getDeclaredField("pathList");
@@ -80,19 +81,23 @@ public class dump {
             dexElementsField.setAccessible(true);
             dexFile_filed.setAccessible(true);
             for (ClassLoader classLoader:classLoaders) {
-
+                AndroidClassLoaderInfo loaderInfo = new AndroidClassLoaderInfo();
+                loaderInfo.setClassType(classLoader.getClass().getName());
                 if (classLoader instanceof BaseDexClassLoader) {
                     Object BaseDexClassLoad_PathList = pathListField.get(classLoader);
                     Object[] DexPathList_dexElements = (Object[]) dexElementsField.get(BaseDexClassLoad_PathList);
-                    int i = 0;
+
                     if (DexPathList_dexElements != null) {
                         for (Object dexElement : DexPathList_dexElements) {
+
                             DexFile dexFile = (DexFile) dexFile_filed.get(dexElement);
                             if (dexFile != null) {
                                 //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
                                 long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
                                 String fileName = (String) DexFile_mFileName.get(dexFile);
-                                cookieListMpas.put(cookie,fileName);
+                                loaderInfo.setFilePatch(fileName);
+
+                                DexClassLoaderCookieMpas.put(cookie,loaderInfo);
                             }
                         }
                     }
@@ -104,7 +109,7 @@ public class dump {
             e.printStackTrace();
         }
 
-        return cookieListMpas;
+        return DexClassLoaderCookieMpas;
     }
     public static void dumpdexToLocal(Context context) {
 
@@ -114,7 +119,6 @@ public class dump {
         }
         BaseDexClassLoader[] classLoaders = (BaseDexClassLoader[]) getBaseDexClassLoaderList();
         try {
-            Log.e("dump","class xunhuan");
             //TODO:to get 'pathList' field and 'dexElements' field by reflection.
             //private final DexPathList pathList;
             Class<?> baseDexClassLoaderClass = Class.forName("dalvik.system.BaseDexClassLoader");
@@ -134,7 +138,6 @@ public class dump {
             dexElementsField.setAccessible(true);
             dexFile_filed.setAccessible(true);
             for (ClassLoader classLoader:classLoaders) {
-
                 if (classLoader instanceof BaseDexClassLoader) {
                     Object BaseDexClassLoad_PathList = pathListField.get(classLoader);
                     Object[] DexPathList_dexElements = (Object[]) dexElementsField.get(BaseDexClassLoad_PathList);
@@ -146,7 +149,6 @@ public class dump {
                                 //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
                                 long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
                                 dumpDexToLocalByCookie(cookie,pathFile.getAbsolutePath());
-                                Log.e("rzx","");
                             }
                         }
                     }

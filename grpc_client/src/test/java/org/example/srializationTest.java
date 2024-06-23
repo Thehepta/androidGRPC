@@ -28,7 +28,7 @@ public class srializationTest {
 
         Map<String, FixDumpClassCodeItem> fixDexDumpClassCodeItem = null;
         try {
-            FileInputStream fileIn = new FileInputStream("fix.data");
+            FileInputStream fileIn = new FileInputStream("c078d7b9.data");
             ObjectInputStream in = new ObjectInputStream(fileIn);
             fixDexDumpClassCodeItem = (Map<String, FixDumpClassCodeItem>) in.readObject();
             in.close();
@@ -80,7 +80,7 @@ public class srializationTest {
         }
 
         try {
-            FileOutputStream fileOut = new FileOutputStream("fix.data");
+            FileOutputStream fileOut = new FileOutputStream("c078d7b9.data");
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(dumpClassCodeItemList);
             out.close();

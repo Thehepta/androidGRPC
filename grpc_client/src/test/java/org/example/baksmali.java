@@ -11,8 +11,8 @@ import java.util.Map;
 public class baksmali {
 
     public static void main(String[] args) {
-        String dexPath = "src/test/resources/FixTest/0x7cd3132000.dex";
-        String fixPath = "src/test/resources/FixTest/0x7cd3132000.data";
+        String dexPath = "src/test/resources/FixTest/c078d7b9.dex";
+        String fixPath = "src/test/resources/FixTest/c078d7b9.data";
         String out = Integer.toHexString(dexPath.hashCode());
 
         int jobs = 1;

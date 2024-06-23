@@ -28,7 +28,7 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
 
 
-        String host = "192.168.0.86";
+        String host = "10.1.2.242";
         int port = 9091;
         ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
         GrpcService service = new GrpcService(channel);
@@ -38,11 +38,11 @@ public class Main {
         service.dumpDexFile(dir);
 
 //         byte[] dump_code_item = service.dumpDexMethod("com.hepta.androidgrpc.MainActivity","onCreate","(Landroid/os/Bundle;)V");
-        DumpClassInfo dumpClassList = service.dumpClass("com.hepta.androidgrpc.GrpcServiceImpl");
-        DumpClassInfo dumpClassList2 = service.dumpClass("com.hepta.androidgrpc.dump");
-        DumpClassInfo dumpClassList3 = service.dumpClass("com.hepta.androidgrpc.JNISignatureConverter");
-        DumpClassInfo dumpClassList4 = service.dumpClass("com.hepta.androidgrpc.LoadEntry");
-        DumpClassInfo dumpClassList5 = service.dumpClass("com.hepta.androidgrpc.MainActivity");
+//        DumpClassInfo dumpClassList = service.dumpClass("com.hepta.androidgrpc.GrpcServiceImpl");
+//        DumpClassInfo dumpClassList2 = service.dumpClass("com.hepta.androidgrpc.dump");
+//        DumpClassInfo dumpClassList3 = service.dumpClass("com.hepta.androidgrpc.JNISignatureConverter");
+//        DumpClassInfo dumpClassList4 = service.dumpClass("com.hepta.androidgrpc.LoadEntry");
+//        DumpClassInfo dumpClassList5 = service.dumpClass("com.hepta.androidgrpc.MainActivity");
 
 //        fixMain.Main1();
 
