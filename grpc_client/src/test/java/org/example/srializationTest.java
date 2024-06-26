@@ -64,7 +64,7 @@ public class srializationTest {
 
         Map<String, FixDumpClassCodeItem> dumpClassCodeItemList = new HashMap<>();
         for(String clsName : clsList){
-            String classTypeString = JNISignatureConverter.ClassNameToJNISigner(clsName);
+            String classTypeString = SignatureConverter.ClassNameToJNISigner(clsName);
             DumpClassInfo dumpClassList = service.dumpClass(clsName);
 
             Map<String, FixDumpMethodCodeItem> methodCodeItems = new HashMap<>();

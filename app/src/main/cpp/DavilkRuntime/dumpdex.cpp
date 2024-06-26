@@ -195,7 +195,7 @@ bool WriteCodeItemToDexFileByArtMethod(ArtMethod* artMethod, uint32_t code_item_
 jbyteArray dumpMethod_code_item(JNIEnv *env,ArtMethod* artMethod){
 
     CodeItem *code_item = GetCodeItem_fun(artMethod);
-    if (LIKELY(code_item != nullptr)) {
+    if (code_item != nullptr) {
         uint32_t code_item_len = 0;
         uint8_t *item = (uint8_t *) code_item;
         if (code_item->tries_size_ > 0) {
@@ -212,6 +212,7 @@ jbyteArray dumpMethod_code_item(JNIEnv *env,ArtMethod* artMethod){
         env->SetByteArrayRegion(byteArray, 0, code_item_len,reinterpret_cast<const jbyte *>(code_item));
         return byteArray;
     }
+    return nullptr;
 }
 jbyteArray   dumpMethodByMember(JNIEnv *env, jclass cls, jobject method){
 

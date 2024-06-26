@@ -114,11 +114,19 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
                 }
                 byte[] MethodCodeItem = dump.dumpMethodByMember(method);
                 DumpMethodInfo.Builder methodInfobuilder = DumpMethodInfo.newBuilder();
-                String jniSignature = JNISignatureConverter.convertToJNISignature(method);
-                methodInfobuilder.setMethodName(method.getName());
-                methodInfobuilder.setMethodSign(jniSignature);
-                methodInfobuilder.setContent(ByteString.copyFrom(MethodCodeItem));
-                classInfobuilder.addDumpMethodInfo(methodInfobuilder.build());
+                if(MethodCodeItem == null){
+                    methodInfobuilder.setStatus(false);
+                    classInfobuilder.addDumpMethodInfo(methodInfobuilder.build());
+                }else {
+                    String jniSignature = JNISignatureConverter.convertToJNISignature(method);
+                    methodInfobuilder.setMethodName(method.getName());
+                    methodInfobuilder.setMethodSign(jniSignature);
+                    methodInfobuilder.setStatus(true);
+                    methodInfobuilder.setContent(ByteString.copyFrom(MethodCodeItem));
+                    classInfobuilder.addDumpMethodInfo(methodInfobuilder.build());
+                }
+
+
             }
             Constructor[] DeclaredConstructors =  cls.getDeclaredConstructors();
             for (Constructor method :DeclaredConstructors ) {

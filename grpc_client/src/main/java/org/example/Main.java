@@ -28,7 +28,7 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
 
 
-        String host = "10.1.2.242";
+        String host = "192.168.12.105";
         int port = 9091;
         ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
         GrpcService service = new GrpcService(channel);
@@ -55,37 +55,37 @@ public class Main {
     }
 
 
-    public static void dumpText(){
-        String host = "192.168.0.86";
-        int port = 9091;
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
-        GrpcService service = new GrpcService(channel);
-
-        String [] clsList = {
-                "com.hepta.androidgrpc.GrpcServiceImpl",
-                "com.hepta.androidgrpc.dump",
-                "com.hepta.androidgrpc.JNISignatureConverter",
-                "com.hepta.androidgrpc.LoadEntry",
-                "com.hepta.androidgrpc.MainActivity"
-        };
-
-        Map<String, FixDumpClassCodeItem> dumpClassCodeItemList = new HashMap<>();
-        for(String clsName : clsList){
-            String classTypeString = JNISignatureConverter.ClassNameToJNISigner(clsName);
-            DumpClassInfo dumpClassList = service.dumpClass(clsName);
-
-            Map<String, FixDumpMethodCodeItem> methodCodeItems = new HashMap<>();
-            for(DumpMethodInfo dumpMethodInfo:dumpClassList.getDumpMethodInfoList()){
-                String MethodName = dumpMethodInfo.getMethodName();
-                String MethodSign = dumpMethodInfo.getMethodSign();
-                String MethodString = MethodName+MethodSign;
-                FixDumpMethodCodeItem fixDumpMethodCodeItem = new FixDumpMethodCodeItem(dumpMethodInfo.toByteArray());
-                methodCodeItems.put(MethodString,fixDumpMethodCodeItem);
-            }
-            FixDumpClassCodeItem fixDumpClassCodeItem = new FixDumpClassCodeItem(methodCodeItems);
-            dumpClassCodeItemList.put(classTypeString,fixDumpClassCodeItem);
-
-        }
-    }
+//    public static void dumpText(){
+//        String host = "192.168.0.86";
+//        int port = 9091;
+//        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
+//        GrpcService service = new GrpcService(channel);
+//
+//        String [] clsList = {
+//                "com.hepta.androidgrpc.GrpcServiceImpl",
+//                "com.hepta.androidgrpc.dump",
+//                "com.hepta.androidgrpc.JNISignatureConverter",
+//                "com.hepta.androidgrpc.LoadEntry",
+//                "com.hepta.androidgrpc.MainActivity"
+//        };
+//
+//        Map<String, FixDumpClassCodeItem> dumpClassCodeItemList = new HashMap<>();
+//        for(String clsName : clsList){
+//            String classTypeString = JNISignatureConverter.ClassNameToJNISigner(clsName);
+//            DumpClassInfo dumpClassList = service.dumpClass(clsName);
+//
+//            Map<String, FixDumpMethodCodeItem> methodCodeItems = new HashMap<>();
+//            for(DumpMethodInfo dumpMethodInfo:dumpClassList.getDumpMethodInfoList()){
+//                String MethodName = dumpMethodInfo.getMethodName();
+//                String MethodSign = dumpMethodInfo.getMethodSign();
+//                String MethodString = MethodName+MethodSign;
+//                FixDumpMethodCodeItem fixDumpMethodCodeItem = new FixDumpMethodCodeItem(dumpMethodInfo.toByteArray());
+//                methodCodeItems.put(MethodString,fixDumpMethodCodeItem);
+//            }
+//            FixDumpClassCodeItem fixDumpClassCodeItem = new FixDumpClassCodeItem(methodCodeItems);
+//            dumpClassCodeItemList.put(classTypeString,fixDumpClassCodeItem);
+//
+//        }
+//    }
 
 }

@@ -23,27 +23,27 @@ public class Fix {
                 FixDumpMethodCodeItem fixDumpMethodCodeItem = new FixDumpMethodCodeItem(dumpMethodInfo.toByteArray());
                 methodCodeItems.put(MethodString,fixDumpMethodCodeItem);
             }
-            FixDumpClassCodeItem fixDumpClassCodeItem = new FixDumpClassCodeItem(methodCodeItems);
-            String classTypeString = JNISignatureConverter.ClassNameToJNISigner(className);
-            dumpClassCodeItemList.put(classTypeString,fixDumpClassCodeItem);
-            FixMain fixMain = new FixMain();
-            fixMain.Main1(DexInput,Smaliout,16,null,dumpClassCodeItemList);
+//            FixDumpClassCodeItem fixDumpClassCodeItem = new FixDumpClassCodeItem(methodCodeItems);
+//            String classTypeString = JNISignatureConverter.ClassNameToJNISigner(className);
+//            dumpClassCodeItemList.put(classTypeString,fixDumpClassCodeItem);
+//            FixMain fixMain = new FixMain();
+//            fixMain.Main1(DexInput,Smaliout,16,null,dumpClassCodeItemList);
         }
     }
 
-    public void FixDirDexList(String DexDir,Map<String, FixDumpClassCodeItem> dumpClassCodeItemList){
-        File directory = new File(DexDir);
-        File[] files = directory.listFiles();
-        // 遍历并打印所有文件名
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile() && file.getName().toLowerCase().endsWith(".dex")) {
-                    FixMain fixMain = new FixMain();
-                    fixMain.Main1(file.getAbsolutePath(),file.getName(),16,null,dumpClassCodeItemList);
-                }
-            }
-        }
-
-    }
+//    public void FixDirDexList(String DexDir,Map<String, FixDumpClassCodeItem> dumpClassCodeItemList){
+//        File directory = new File(DexDir);
+//        File[] files = directory.listFiles();
+//        // 遍历并打印所有文件名
+//        if (files != null) {
+//            for (File file : files) {
+//                if (file.isFile() && file.getName().toLowerCase().endsWith(".dex")) {
+//                    FixMain fixMain = new FixMain();
+//                    fixMain.Main1(file.getAbsolutePath(),file.getName(),16,null,dumpClassCodeItemList);
+//                }
+//            }
+//        }
+//
+//    }
 
 }

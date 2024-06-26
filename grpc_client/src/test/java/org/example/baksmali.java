@@ -1,7 +1,8 @@
 package org.example;
 
+
+
 import org.jf.baksmali.fix.FixDumpClassCodeItem;
-import org.jf.baksmali.fix.FixMain;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,8 +29,8 @@ public class baksmali {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-        FixMain fixMain = new FixMain();
-        fixMain.Main1(dexPath,out,jobs,null,fixDumpClassCodeItem);
+//        FixMain fixMain = new FixMain();
+//        fixMain(dexPath,out,jobs,null,fixDumpClassCodeItem);
 
     }
 }
