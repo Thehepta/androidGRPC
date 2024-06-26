@@ -3,6 +3,9 @@ package org.example;
 import com.google.protobuf.ByteString;
 import com.kone.pbdemo.protocol.*;
 import io.grpc.ManagedChannel;
+import org.jf.baksmali.fix.FixClassCall;
+import org.jf.baksmali.fix.FixDumpClassCodeItem;
+import org.jf.baksmali.fix.FixMain;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -48,6 +51,10 @@ public class GrpcService {
     }
 
     void dumpDexFile(String Dir){
+        String[] smali_args = new String[4];
+        smali_args[0] = "assemble";
+        smali_args[3] = "-o";
+
         Empty empty = Empty.newBuilder().build();
         DexClassLoaders dexInfoList =  iServerInface.getDexClassLoaderList(empty);
         for(DexClassLoaderInfo dexInfo : dexInfoList.getDexClassLoadInfoList()){
@@ -59,7 +66,8 @@ public class GrpcService {
                 DexFilePoint dexFilePoint = DexFilePoint.newBuilder().setValues(DexFile_Point).build();
                 Dexbuff buff = iServerInface.dexDumpByDexFilePoint(dexFilePoint).next();
                 ByteString data =  buff.getContent();
-                Path filePath = Paths.get(Dir, Long.toHexString(DexFile_Point)+".dex"); // 构建文件路径
+                smali_args[1] = Long.toHexString(DexFile_Point);
+                Path filePath = Paths.get(Dir, smali_args[1]+".dex"); // 构建文件路径
                 try {
                     Files.createDirectories(filePath.getParent());
                     Files.write(filePath, data.toByteArray(), StandardOpenOption.CREATE);
@@ -67,6 +75,17 @@ public class GrpcService {
                 } catch (IOException e) {
                     System.err.println("    dex dump erroe: " + e.getMessage());
                 }
+                FixMain fixMain = new FixMain();
+
+                fixMain.Main1(filePath.toString(), smali_args[1], 16, new FixClassCall() {
+                    @Override
+                    public FixDumpClassCodeItem ClassFixCall(String s) {
+                        return null;
+                    }
+                });
+                smali_args[4] = smali_args[1]+"_fix.dex";
+                org.jf.smali.Main.main(smali_args);
+
             }
         }
     }
