@@ -79,7 +79,12 @@ public class GrpcService {
 
                 fixMain.Main1(filePath.toString(), smali_args[1], 16, new FixClassCall() {
                     @Override
-                    public FixDumpClassCodeItem ClassFixCall(String s) {
+                    public FixDumpClassCodeItem ClassFixCall(String clsName) {
+                        StringArgument classNameArg = StringArgument.newBuilder().setClassName(clsName).build();
+                        DumpClassInfo dumpClassList = iServerInface.dumpClass(classNameArg).next();
+                        if (dumpClassList.getStatus()) {
+//                            return new FixDumpClassCodeItem();
+                        }
                         return null;
                     }
                 });
