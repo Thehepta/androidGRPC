@@ -8,9 +8,10 @@ import dalvik.system.PathClassLoader;
 
 public class AndroidClassLoaderInfo {
 
-    String ClassType;
-    String FilePatch;
+    String ClassType = "null";
+    String FilePatch = "null";
 
+    long[] cookie;
 
     public void setClassType(String classType) {
         ClassType = classType;
@@ -18,5 +19,9 @@ public class AndroidClassLoaderInfo {
 
     public void setFilePatch(String filePatch) {
         FilePatch = filePatch;
+    }
+
+    public void setCookie(long[] cookie) {
+        this.cookie = cookie;
     }
 }

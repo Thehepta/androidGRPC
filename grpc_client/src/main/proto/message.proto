@@ -36,6 +36,7 @@ service UserService {
     rpc dumpMethod (DumpMethodString) returns (Dexbuff) {}
     rpc dumpClass (StringArgument ) returns (stream DumpClassInfo) {}
     rpc getDexClassLoaderList (Empty ) returns (DexClassLoaders) {}
+    rpc getDexClassLoaderInfoByClass (StringArgument ) returns (DexClassLoaderInfo) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
     rpc dexDumpByDexFilePoint(DexFilePoint) returns (stream Dexbuff);
 }
@@ -89,6 +90,9 @@ message DexClassLoaderInfo {
     string dexpath = 2;
     string classLoadType = 3;
     repeated Dexbuff buff = 4 ;
+    bool status = 5;
+    string msg = 6;
+
 
 }
 

@@ -44,6 +44,8 @@ public class GrpcService {
         return null;
     }
 
+
+
     byte[] dumpDexMethod(String className,String MethodName,String MethodSign){
         DumpMethodString.Builder dumpMethod = DumpMethodString.newBuilder();
         dumpMethod.setClassName(className);
@@ -53,13 +55,28 @@ public class GrpcService {
         return buff.getContent().toByteArray();
     }
 
-    void dumpDexFile(String Dir){
-        String[] smali_args = new String[4];
-        smali_args[0] = "assemble";
-        smali_args[2] = "-o";
-        FixMain fixMain = new FixMain();
+    public DexClassLoaderInfo getClassLoaderInfo(String className){
+        StringArgument classNameArg = StringArgument.newBuilder().setClassName(className).build();
+        return  iServerInface.getDexClassLoaderInfoByClass(classNameArg);
+    }
+    public DexClassLoaders getDexClassLoaderList() {
+
         Empty empty = Empty.newBuilder().build();
-        DexClassLoaders dexInfoList =  iServerInface.getDexClassLoaderList(empty);
+        return  iServerInface.getDexClassLoaderList(empty);
+    }
+
+    public byte[] dexDumpByDexFilePoint(long DexFile_Point) {
+
+        DexFilePoint dexFilePoint = DexFilePoint.newBuilder().setValues(DexFile_Point).build();
+        Dexbuff buff = iServerInface.dexDumpByDexFilePoint(dexFilePoint).next();
+        ByteString data =  buff.getContent();
+        return  data.toByteArray();
+    }
+
+
+    void OnlyDumpDexFile(String Dir){
+
+        DexClassLoaders dexInfoList =  getDexClassLoaderList();
         for(DexClassLoaderInfo dexInfo : dexInfoList.getDexClassLoadInfoList()){
             System.out.println("android dex class path: "+dexInfo.getDexpath());
             if(dexInfo.getDexpath().contains("/system_ext")){
@@ -70,41 +87,17 @@ public class GrpcService {
             long[] CookieList = dexInfo.getValuesList().stream().mapToLong(Long::longValue).toArray();
             for(int i = kDexFileIndexStart;i<CookieList.length;++i){
                 long DexFile_Point = CookieList[i];
-                DexFilePoint dexFilePoint = DexFilePoint.newBuilder().setValues(DexFile_Point).build();
-                Dexbuff buff = iServerInface.dexDumpByDexFilePoint(dexFilePoint).next();
-                ByteString data =  buff.getContent();
-                smali_args[1] = Long.toHexString(DexFile_Point);
-                Path filePath = Paths.get(Dir, smali_args[1]+".dex"); // 构建文件路径
+                byte[] data = dexDumpByDexFilePoint(DexFile_Point);
+
+                String fileName = Long.toHexString(DexFile_Point);
+                Path filePath = Paths.get(Dir, fileName+".dex"); // 构建文件路径
                 try {
                     Files.createDirectories(filePath.getParent());
-                    Files.write(filePath, data.toByteArray(), StandardOpenOption.CREATE);
+                    Files.write(filePath, data, StandardOpenOption.CREATE);
                     System.out.println("    dumpdex successfule To path -> : "+filePath.toAbsolutePath());
                 } catch (IOException e) {
                     System.err.println("    dex dump erroe: " + e.getMessage());
                 }
-
-                fixMain.Main1(filePath.toString(), smali_args[1], 1, new FixClassCall() {
-                    @Override
-                    public FixDumpClassCodeItem ClassFixCall(String clsName) {
-                        System.out.println(clsName);
-                        String java_cls_name = SignatureConverter.JNISignerToClassName(clsName);
-                        StringArgument classNameArg = StringArgument.newBuilder().setClassName(java_cls_name).build();
-                        DumpClassInfo dumpClassInfo = iServerInface.dumpClass(classNameArg).next();
-                        if (dumpClassInfo.getStatus()) {
-                            Map<String, FixDumpMethodCodeItem> methodCodeItemList =new HashMap<>();
-                            for(DumpMethodInfo dumpmethodInfo:dumpClassInfo.getDumpMethodInfoList()){
-                                if(dumpmethodInfo.getStatus()){
-                                    methodCodeItemList.put(dumpmethodInfo.getMethodName(),new FixDumpMethodCodeItem(dumpmethodInfo.getContent().toByteArray()));
-                                }
-                            }
-                            return new FixDumpClassCodeItem(methodCodeItemList,null);
-                        }
-                        return null;
-                    }
-                });
-                smali_args[3] = smali_args[1]+"_fix.dex";
-                org.jf.smali.Main.main(smali_args);
-
             }
         }
     }

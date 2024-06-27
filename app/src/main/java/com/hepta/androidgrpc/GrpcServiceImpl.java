@@ -22,8 +22,11 @@ import com.kone.pbdemo.protocol.DumpMethodString;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import dalvik.system.BaseDexClassLoader;
 import io.grpc.stub.StreamObserver;
 
 
@@ -65,21 +68,43 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     }
 
 
+    @Override
+    public void getDexClassLoaderInfoByClass(StringArgument request, StreamObserver<DexClassLoaderInfo> responseObserver) {
+        String clsName = request.getClassName();
+        Class<?> cls = AndroidFindClass(clsName);
+        DexClassLoaderInfo.Builder dexClassLoaderCookie_build = DexClassLoaderInfo.newBuilder();
+        if(cls != null){
+            ClassLoader classLoader = cls.getClassLoader();
+            AndroidClassLoaderInfo androidClassLoaderInfo = dump.getClassLoaderCookie(context, (BaseDexClassLoader) classLoader);
+
+            assert androidClassLoaderInfo != null;
+            for(long dexCookie:androidClassLoaderInfo.cookie){
+                dexClassLoaderCookie_build.setStatus(true);
+                dexClassLoaderCookie_build.addValues(dexCookie);
+                dexClassLoaderCookie_build.setDexpath(androidClassLoaderInfo.FilePatch);
+                dexClassLoaderCookie_build.setClassLoadType(androidClassLoaderInfo.ClassType);
+            }
+        }else {
+            dexClassLoaderCookie_build.setStatus(false);
+            dexClassLoaderCookie_build.setMsg(clsName+" not found");
+        }
+
+        responseObserver.onNext(dexClassLoaderCookie_build.build());
+        responseObserver.onCompleted();
+    }
+
 
     @Override
     public void getDexClassLoaderList(Empty request, StreamObserver<DexClassLoaders> responseObserver) {
-        Map<long[],AndroidClassLoaderInfo> dexClassLoaderCookieMpas = dump.getDexClassLoaderCookieMpas(context);
+        List<AndroidClassLoaderInfo> dexClassLoaderCookieList = dump.getDexClassLoaderCookieMpas(context);
         DexClassLoaders.Builder dexClassLoaderInfoList_build =  DexClassLoaders.newBuilder();
-        for(long[] dexClassLoaderCookie:dexClassLoaderCookieMpas.keySet() ){
+        for(AndroidClassLoaderInfo androidClassLoaderInfo:dexClassLoaderCookieList ){
             DexClassLoaderInfo.Builder dexClassLoaderCookie_build = DexClassLoaderInfo.newBuilder();
-            for(long dexCookie:dexClassLoaderCookie){
+            for(long dexCookie:androidClassLoaderInfo.cookie){
                 dexClassLoaderCookie_build.addValues(dexCookie);
             }
-            AndroidClassLoaderInfo classLoaderInfo = dexClassLoaderCookieMpas.get(dexClassLoaderCookie);
-            if(classLoaderInfo != null){
-                dexClassLoaderCookie_build.setDexpath(classLoaderInfo.FilePatch);
-                dexClassLoaderCookie_build.setClassLoadType(classLoaderInfo.ClassType);
-            }
+            dexClassLoaderCookie_build.setDexpath(androidClassLoaderInfo.FilePatch);
+            dexClassLoaderCookie_build.setClassLoadType(androidClassLoaderInfo.ClassType);
             dexClassLoaderInfoList_build.addDexClassLoadInfo(dexClassLoaderCookie_build.build());
         }
         responseObserver.onNext(dexClassLoaderInfoList_build.build());
@@ -101,42 +126,50 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         String clsName = request.getClassName();
         DumpClassInfo.Builder classInfobuilder = DumpClassInfo.newBuilder();
 
-        Log.e("rzx","dumpClass:"+clsName);
+//        Log.e("rzx","dumpClass:"+clsName);
         Class<?> cls = AndroidFindClass(clsName);
 
         if(cls != null){
             classInfobuilder.setStatus(true);
-            Method[] Declaredmethods =  cls.getDeclaredMethods();
-            for (Method method :Declaredmethods ) {
-                int modifiers = method.getModifiers();
-                if(Modifier.isNative(modifiers)){
-                    continue;
+            try {
+                Method[] Declaredmethods =  cls.getDeclaredMethods();   //有些类会出现找到类，但是又报错java.lang.NoClassDefFoundError:
+                for (Method method :Declaredmethods ) {
+                    int modifiers = method.getModifiers();
+                    if(Modifier.isNative(modifiers)){
+                        continue;
+                    }
+                    byte[] MethodCodeItem = dump.dumpMethodByMember(method);
+                    DumpMethodInfo.Builder methodInfobuilder = DumpMethodInfo.newBuilder();
+                    if(MethodCodeItem == null){
+                        methodInfobuilder.setStatus(false);
+                        classInfobuilder.addDumpMethodInfo(methodInfobuilder.build());
+                    }else {
+                        String jniSignature = JNISignatureConverter.convertToJNISignature(method);
+                        methodInfobuilder.setMethodName(method.getName());
+                        methodInfobuilder.setMethodSign(jniSignature);
+                        methodInfobuilder.setStatus(true);
+                        methodInfobuilder.setContent(ByteString.copyFrom(MethodCodeItem));
+                        classInfobuilder.addDumpMethodInfo(methodInfobuilder.build());
+                    }
                 }
-                byte[] MethodCodeItem = dump.dumpMethodByMember(method);
-                DumpMethodInfo.Builder methodInfobuilder = DumpMethodInfo.newBuilder();
-                if(MethodCodeItem == null){
-                    methodInfobuilder.setStatus(false);
-                    classInfobuilder.addDumpMethodInfo(methodInfobuilder.build());
-                }else {
+
+            }catch (NoClassDefFoundError e){
+                Log.e("Rzx", Objects.requireNonNull(e.getMessage()));
+
+            }
+            try {
+                Constructor[] DeclaredConstructors = cls.getDeclaredConstructors();
+                for (Constructor method : DeclaredConstructors) {
+                    byte[] MethodCodeItem = dump.dumpMethodByMember(method);
+                    DumpMethodInfo.Builder methodInfobuilder = DumpMethodInfo.newBuilder();
                     String jniSignature = JNISignatureConverter.convertToJNISignature(method);
                     methodInfobuilder.setMethodName(method.getName());
                     methodInfobuilder.setMethodSign(jniSignature);
-                    methodInfobuilder.setStatus(true);
                     methodInfobuilder.setContent(ByteString.copyFrom(MethodCodeItem));
                     classInfobuilder.addDumpMethodInfo(methodInfobuilder.build());
                 }
-
-
-            }
-            Constructor[] DeclaredConstructors =  cls.getDeclaredConstructors();
-            for (Constructor method :DeclaredConstructors ) {
-                byte[] MethodCodeItem = dump.dumpMethodByMember(method);
-                DumpMethodInfo.Builder methodInfobuilder = DumpMethodInfo.newBuilder();
-                String jniSignature = JNISignatureConverter.convertToJNISignature(method);
-                methodInfobuilder.setMethodName(method.getName());
-                methodInfobuilder.setMethodSign(jniSignature);
-                methodInfobuilder.setContent(ByteString.copyFrom(MethodCodeItem));
-                classInfobuilder.addDumpMethodInfo(methodInfobuilder.build());
+            }catch (NoClassDefFoundError e){
+                Log.e("Rzx", Objects.requireNonNull(e.getMessage()));
             }
         }else {
             classInfobuilder.setStatus(false);
@@ -145,6 +178,8 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         responseObserver.onNext(classInfobuilder.build());
         responseObserver.onCompleted();
     }
+
+
 
     @Override
     public void dumpMethod(DumpMethodString request, StreamObserver<Dexbuff> responseObserver) {

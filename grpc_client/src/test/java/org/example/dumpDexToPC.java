@@ -13,7 +13,7 @@ public class dumpDexToPC {
         int port = 9091;
         ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
         GrpcService service = new GrpcService(channel);
-        service.dumpDexFile(dir);
+//        service.dumpDexFile(dir);
 
     }
 }

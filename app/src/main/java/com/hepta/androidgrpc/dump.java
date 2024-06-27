@@ -57,9 +57,51 @@ public class dump {
             }
         }
     }
+    public static AndroidClassLoaderInfo getClassLoaderCookie(Context context,BaseDexClassLoader classLoaders) {
+        Class<?> baseDexClassLoaderClass = null;
+        try {
+            baseDexClassLoaderClass = Class.forName("dalvik.system.BaseDexClassLoader");
+            Field pathListField = baseDexClassLoaderClass.getDeclaredField("pathList");
+            Class<?> dexPathListClass = Class.forName("dalvik.system.DexPathList");
+            Field dexElementsField = dexPathListClass.getDeclaredField("dexElements");
+            pathListField.setAccessible(true);
 
-    public static Map<long[],AndroidClassLoaderInfo> getDexClassLoaderCookieMpas(Context context) {
-        Map<long[],AndroidClassLoaderInfo> DexClassLoaderCookieMpas =new HashMap<>();
+            dexElementsField.setAccessible(true);
+
+            Object BaseDexClassLoad_PathList = pathListField.get(classLoaders);
+            Field DexFile_mCookie = DexFile.class.getDeclaredField("mCookie");
+            DexFile_mCookie.setAccessible(true);
+            Object[] DexPathList_dexElements = (Object[]) dexElementsField.get(BaseDexClassLoad_PathList);
+            Class<?> Element = Class.forName("dalvik.system.DexPathList$Element");
+            Field dexFile_filed = Element.getDeclaredField("dexFile");
+            Field DexFile_mFileName = DexFile.class.getDeclaredField("mFileName");
+            DexFile_mFileName.setAccessible(true);
+            dexFile_filed.setAccessible(true);
+            AndroidClassLoaderInfo loaderInfo = new AndroidClassLoaderInfo();
+            loaderInfo.setClassType(classLoaders.getClass().getName());
+
+            if (DexPathList_dexElements != null) {
+                for (Object dexElement : DexPathList_dexElements) {
+
+                    DexFile dexFile = (DexFile) dexFile_filed.get(dexElement);
+                    if (dexFile != null) {
+                        //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
+                        long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
+                        String fileName = (String) DexFile_mFileName.get(dexFile);
+                        loaderInfo.setFilePatch(fileName);
+                        loaderInfo.setCookie(cookie);
+                        return loaderInfo;
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    public static List<AndroidClassLoaderInfo> getDexClassLoaderCookieMpas(Context context) {
+        List<AndroidClassLoaderInfo> DexClassLoaderCookieList =new ArrayList<>();
 
         BaseDexClassLoader[] classLoaders = (BaseDexClassLoader[]) getBaseDexClassLoaderList();
         try {
@@ -96,8 +138,8 @@ public class dump {
                                 long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
                                 String fileName = (String) DexFile_mFileName.get(dexFile);
                                 loaderInfo.setFilePatch(fileName);
-
-                                DexClassLoaderCookieMpas.put(cookie,loaderInfo);
+                                loaderInfo.setCookie(cookie);
+                                DexClassLoaderCookieList.add(loaderInfo);
                             }
                         }
                     }
@@ -109,7 +151,7 @@ public class dump {
             e.printStackTrace();
         }
 
-        return DexClassLoaderCookieMpas;
+        return DexClassLoaderCookieList;
     }
     public static void dumpdexToLocal(Context context) {
 
