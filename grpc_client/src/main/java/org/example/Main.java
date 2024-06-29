@@ -5,9 +5,7 @@ import com.google.gson.JsonArray;
 import com.kone.pbdemo.protocol.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.jf.baksmali.fix.FixClassCall;
-import org.jf.baksmali.fix.FixDumpClassCodeItem;
-import org.jf.baksmali.fix.FixDumpMethodCodeItem;
+import org.jf.baksmali.fix.*;
 import org.jf.baksmali.fix.FixMain;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,6 +35,7 @@ public class Main {
     ManagedChannel channel ;
     static String host;
     static int port;
+    int jobs;
     Main(){
         host = "192.168.12.105";
         port = 9091;
@@ -54,6 +53,7 @@ public class Main {
         service = new GrpcService(channel);
         worDir = "D:\\apk\\dumpdex";
         OutDexDir = worDir+"\\"+service.getCurrentPackageName();
+        jobs = 1;
 
 
     }
@@ -75,9 +75,11 @@ public class Main {
 
 //        dumpDexByClassAndFix(service,dir,"com.hepta.androidgrpc.AndroidClassLoaderInfo");
 //        dumpDexByClassAndFix(OutDexDir,"com.yunmai.valueoflife.MainActivity");
-        dumpDexByClassAndFix(OutDexDir,"com.ccb.start.MainActivity");
+//        dumpDexByClassAndFix(OutDexDir,"com.ccb.start.MainActivity");
 //        dumpWholeDexFileAndFix(OutDexDir);
 //        OnlyDumpDexFile(OutDexDir);
+
+        FixDexMethodCodeItem("D:\\apk\\dumpdex\\com.chinamworld.main\\7643e2f2c0.dex");
 
     }
 
@@ -122,25 +124,17 @@ public class Main {
         }
 
     }
-    public  void DumpdexByDexFilePointAndFix(String Dir, long DexFilePoint){
 
+    public void FixDexMethodCodeItem(String FixfileAbsPath){
+        Path FixfilePath = Paths.get(FixfileAbsPath);
+        int lastIndex  = FixfilePath.getFileName().toString().lastIndexOf(".");
+        String file_name = FixfilePath.getFileName().toString().substring(0,lastIndex);
+        String Dir = FixfilePath.getParent().toString();
         FixMain fixMain = new FixMain();
-        String file_name = Long.toHexString(DexFilePoint);
         String smail_out = Dir + "/" + file_name;
-        byte[] data = service.dexDumpByDexFilePoint(DexFilePoint);
-
-
-        Path filePath = Paths.get(Dir, file_name+".dex"); // 构建文件路径
-        try {
-            Files.createDirectories(filePath.getParent());
-            Files.write(filePath, data, StandardOpenOption.CREATE);
-            System.out.println("    dumpdex successfule To path -> : "+filePath.toAbsolutePath());
-        } catch (IOException e) {
-            System.err.println("    dex dump erroe: " + e.getMessage());
-        }
         try {
 
-            fixMain.Main1(filePath.toString(), smail_out, 1, new FixClassCall() {
+            fixMain.Main1(FixfilePath.toString(), smail_out, jobs, new FixClassCall() {
                 @Override
                 public FixDumpClassCodeItem ClassFixCall(String clsName) {
                     boolean exists = containsClass(clsName);
@@ -152,25 +146,63 @@ public class Main {
                             Map<String, FixDumpMethodCodeItem> methodCodeItemList =new HashMap<>();
                             for(DumpMethodInfo dumpmethodInfo:dumpClassInfo.getDumpMethodInfoList()){
                                 if(dumpmethodInfo.getStatus()){
-                                    methodCodeItemList.put(dumpmethodInfo.getMethodName(),new FixDumpMethodCodeItem(dumpmethodInfo.getContent().toByteArray()));
+                                    String methodString = dumpmethodInfo.getMethodName()+dumpmethodInfo.getMethodSign();
+                                    methodCodeItemList.put(methodString,new FixDumpMethodCodeItem(dumpmethodInfo.getContent().toByteArray()));
                                 }
                             }
-                            return new FixDumpClassCodeItem(methodCodeItemList,null);
+                            return new FixDumpClassCodeItem(methodCodeItemList,new FixMethodCall(methodCodeItemList){
+                                public FixDumpMethodCodeItem MethodFixCall(String classDescriptor) {
+                                    return (FixDumpMethodCodeItem)this.methodCodeItemList.get(classDescriptor);
+                                }
+                            });
                         }
                     }
                     return null;
                 }
             });
-            String[] smali_args = new String[4];
-            smali_args[0] = "assemble";
-            smali_args[1] = smail_out;
-            smali_args[2] = "-o";
-            smali_args[3] = smail_out + "_fix.dex";
-            org.jf.smali.Main.main(smali_args);
+
         }catch (Exception e){
             System.err.println(e.getMessage());
         }
 
+
+        buildFixSmaliDex(smail_out);
+    }
+
+    public void  buildFixSmaliDex(String smail_out){
+        String[] smali_args = new String[4];
+        smali_args[0] = "assemble";
+        smali_args[1] = smail_out;
+        smali_args[2] = "-o";
+        smali_args[3] = smail_out + "_fix.dex";
+        org.jf.smali.Main.main(smali_args);
+    }
+
+    public  void DumpdexByDexFilePointAndFix(String Dir, long DexFilePoint){
+
+
+        String file_name = Long.toHexString(DexFilePoint);
+
+        byte[] data = service.dexDumpByDexFilePoint(DexFilePoint);
+
+
+        Path filePath = Paths.get(Dir, file_name+".dex"); // 构建文件路径
+        try {
+            Files.createDirectories(filePath.getParent());
+            Files.write(filePath, data, StandardOpenOption.CREATE);
+            System.out.println("    dumpdex successfule To path -> : "+filePath.toAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("    dex dump erroe: " + e.getMessage());
+        }
+
+        FixDexMethodCodeItem(filePath.toString());
+
+    }
+
+
+
+
+    public void FixSmali(){
 
     }
 

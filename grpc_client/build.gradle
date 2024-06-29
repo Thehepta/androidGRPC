@@ -32,7 +32,6 @@ dependencies {
 
     implementation files('libs/baksmali.jar')
     implementation files('libs/smali.jar')
-    implementation files('libs/smali.FixDexMethod.jar')
 }
 
 sourceSets {

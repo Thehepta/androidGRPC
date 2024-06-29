@@ -4,8 +4,8 @@ import com.kone.pbdemo.protocol.DumpClassInfo;
 import com.kone.pbdemo.protocol.DumpMethodInfo;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.example.dumpData.FixDumpClassCodeItem;
-import org.example.dumpData.FixDumpMethodCodeItem;
+import org.jf.baksmali.fix.FixDumpClassCodeItem;
+import org.jf.baksmali.fix.FixDumpMethodCodeItem;
 
 
 import java.io.File;
@@ -55,7 +55,7 @@ public class dumpDexFixCodeItem {
                 FixDumpMethodCodeItem fixDumpMethodCodeItem = new FixDumpMethodCodeItem(dumpMethodInfo.getContent().toByteArray());
                 methodCodeItems.put(MethodString,fixDumpMethodCodeItem);
             }
-            FixDumpClassCodeItem fixDumpClassCodeItem = new FixDumpClassCodeItem(methodCodeItems);
+            FixDumpClassCodeItem fixDumpClassCodeItem = new FixDumpClassCodeItem(methodCodeItems,null);
             dumpClassCodeItemList.put(classTypeString,fixDumpClassCodeItem);
         }
 
