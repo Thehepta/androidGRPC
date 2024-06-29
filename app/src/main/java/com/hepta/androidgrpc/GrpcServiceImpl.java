@@ -23,10 +23,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
-import dalvik.system.BaseDexClassLoader;
 import io.grpc.stub.StreamObserver;
 
 
@@ -60,7 +58,6 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
 
     @Override
     public void dexDumpToLocal(Empty request, StreamObserver<Empty> responseObserver) {
-        Log.e("rzx","dumpdex");
         dump.Entry(context,source,argument);
         dump.dumpdexToLocal(context);
         responseObserver.onNext(request);
@@ -70,24 +67,29 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
 
     @Override
     public void getDexClassLoaderInfoByClass(StringArgument request, StreamObserver<DexClassLoaderInfo> responseObserver) {
-        String clsName = request.getClassName();
+        String clsName = request.getStringContent();
         Class<?> cls = AndroidFindClass(clsName);
         DexClassLoaderInfo.Builder dexClassLoaderCookie_build = DexClassLoaderInfo.newBuilder();
-        if(cls != null){
-            ClassLoader classLoader = cls.getClassLoader();
-            AndroidClassLoaderInfo androidClassLoaderInfo = dump.getClassLoaderCookie(context, (BaseDexClassLoader) classLoader);
-
-            assert androidClassLoaderInfo != null;
-            for(long dexCookie:androidClassLoaderInfo.cookie){
-                dexClassLoaderCookie_build.setStatus(true);
-                dexClassLoaderCookie_build.addValues(dexCookie);
-                dexClassLoaderCookie_build.setDexpath(androidClassLoaderInfo.FilePatch);
-                dexClassLoaderCookie_build.setClassLoadType(androidClassLoaderInfo.ClassType);
+        if(cls != null) {
+            Log.e("rzx", "Found Class :" + cls.getName());
+            if (cls.getName().equals(clsName)) {
+                AndroidClassLoaderInfo androidClassLoaderInfo = dump.getClassLoaderCookie(context, cls);
+                assert androidClassLoaderInfo != null;
+                for (long dexCookie : androidClassLoaderInfo.cookie) {
+                    dexClassLoaderCookie_build.setStatus(true);
+                    dexClassLoaderCookie_build.addValues(dexCookie);
+                    dexClassLoaderCookie_build.setDexpath(androidClassLoaderInfo.FilePatch);
+                    dexClassLoaderCookie_build.setClassLoadType(androidClassLoaderInfo.ClassType);
+                }
+                responseObserver.onNext(dexClassLoaderCookie_build.build());
+                responseObserver.onCompleted();
+                return;
             }
-        }else {
-            dexClassLoaderCookie_build.setStatus(false);
-            dexClassLoaderCookie_build.setMsg(clsName+" not found");
+
         }
+        dexClassLoaderCookie_build.setStatus(false);
+        dexClassLoaderCookie_build.setMsg(clsName+" not found");
+
 
         responseObserver.onNext(dexClassLoaderCookie_build.build());
         responseObserver.onCompleted();
@@ -96,7 +98,7 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
 
     @Override
     public void getDexClassLoaderList(Empty request, StreamObserver<DexClassLoaders> responseObserver) {
-        List<AndroidClassLoaderInfo> dexClassLoaderCookieList = dump.getDexClassLoaderCookieMpas(context);
+        List<AndroidClassLoaderInfo> dexClassLoaderCookieList = dump.getDexClassLoaderCookieList(context);
         DexClassLoaders.Builder dexClassLoaderInfoList_build =  DexClassLoaders.newBuilder();
         for(AndroidClassLoaderInfo androidClassLoaderInfo:dexClassLoaderCookieList ){
             DexClassLoaderInfo.Builder dexClassLoaderCookie_build = DexClassLoaderInfo.newBuilder();
@@ -123,7 +125,7 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
 
     @Override
     public void dumpClass(StringArgument request, StreamObserver<DumpClassInfo> responseObserver) {
-        String clsName = request.getClassName();
+        String clsName = request.getStringContent();
         DumpClassInfo.Builder classInfobuilder = DumpClassInfo.newBuilder();
 
 //        Log.e("rzx","dumpClass:"+clsName);
@@ -190,6 +192,13 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         byte[] method_code_item_buff =  dump.dumpMethodByString(cls,methodName,methodSign);
         Dexbuff buff = Dexbuff.newBuilder().setContent(ByteString.copyFrom(method_code_item_buff)).build();
         responseObserver.onNext(buff);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getCurrentPackageName(Empty request, StreamObserver<StringArgument> responseObserver) {
+        StringArgument stringArgument = StringArgument.newBuilder().setStringContent(context.getPackageName()).build();
+        responseObserver.onNext(stringArgument);
         responseObserver.onCompleted();
     }
 }

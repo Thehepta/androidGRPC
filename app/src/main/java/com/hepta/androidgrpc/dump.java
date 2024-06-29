@@ -3,21 +3,16 @@ package com.hepta.androidgrpc;
 import android.content.Context;
 import android.util.Log;
 
-import org.checkerframework.checker.units.qual.A;
-
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import dalvik.system.BaseDexClassLoader;
 import dalvik.system.DexFile;
-import dalvik.system.PathClassLoader;
 
 public class dump {
 
@@ -57,50 +52,67 @@ public class dump {
             }
         }
     }
-    public static AndroidClassLoaderInfo getClassLoaderCookie(Context context,BaseDexClassLoader classLoaders) {
-        Class<?> baseDexClassLoaderClass = null;
+    public static AndroidClassLoaderInfo getClassLoaderCookie(Context context,Class cls) {
+
+        BaseDexClassLoader[] classLoaders = (BaseDexClassLoader[]) getBaseDexClassLoaderList();
         try {
-            baseDexClassLoaderClass = Class.forName("dalvik.system.BaseDexClassLoader");
+            //private final DexPathList pathList;
+            Class<?> baseDexClassLoaderClass = Class.forName("dalvik.system.BaseDexClassLoader");
             Field pathListField = baseDexClassLoaderClass.getDeclaredField("pathList");
+
+            //private Element[] dexElements;
             Class<?> dexPathListClass = Class.forName("dalvik.system.DexPathList");
-            Field dexElementsField = dexPathListClass.getDeclaredField("dexElements");
-            pathListField.setAccessible(true);
-
-            dexElementsField.setAccessible(true);
-
-            Object BaseDexClassLoad_PathList = pathListField.get(classLoaders);
-            Field DexFile_mCookie = DexFile.class.getDeclaredField("mCookie");
-            DexFile_mCookie.setAccessible(true);
-            Object[] DexPathList_dexElements = (Object[]) dexElementsField.get(BaseDexClassLoad_PathList);
             Class<?> Element = Class.forName("dalvik.system.DexPathList$Element");
-            Field dexFile_filed = Element.getDeclaredField("dexFile");
+
+            Field dexElementsField = dexPathListClass.getDeclaredField("dexElements");
+            Field DexFile_mCookie = DexFile.class.getDeclaredField("mCookie");
             Field DexFile_mFileName = DexFile.class.getDeclaredField("mFileName");
+            Field path_filed = Element.getDeclaredField("path");
+            Field dexFile_filed = Element.getDeclaredField("dexFile");
+            pathListField.setAccessible(true);
+            DexFile_mCookie.setAccessible(true);
             DexFile_mFileName.setAccessible(true);
+            dexElementsField.setAccessible(true);
             dexFile_filed.setAccessible(true);
-            AndroidClassLoaderInfo loaderInfo = new AndroidClassLoaderInfo();
-            loaderInfo.setClassType(classLoaders.getClass().getName());
+            for (ClassLoader classLoader:classLoaders) {
+                AndroidClassLoaderInfo loaderInfo = new AndroidClassLoaderInfo();
+                loaderInfo.setClassType(classLoader.getClass().getName());
+                if (classLoader instanceof BaseDexClassLoader) {
+                    Object BaseDexClassLoad_PathList = pathListField.get(classLoader);
+                    Object[] DexPathList_dexElements = (Object[]) dexElementsField.get(BaseDexClassLoad_PathList);
 
-            if (DexPathList_dexElements != null) {
-                for (Object dexElement : DexPathList_dexElements) {
+                    if (DexPathList_dexElements != null) {
+                        for (Object dexElement : DexPathList_dexElements) {
 
-                    DexFile dexFile = (DexFile) dexFile_filed.get(dexElement);
-                    if (dexFile != null) {
-                        //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
-                        long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
-                        String fileName = (String) DexFile_mFileName.get(dexFile);
-                        loaderInfo.setFilePatch(fileName);
-                        loaderInfo.setCookie(cookie);
-                        return loaderInfo;
+                            DexFile dexFile = (DexFile) dexFile_filed.get(dexElement);
+                            if (dexFile != null) {
+                                //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
+                                Class<?> find_cla = dexFile.loadClass(cls.getName(), cls.getClassLoader());
+                                if (cls.equals(find_cla)){
+                                    long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
+                                    String fileName = (String) DexFile_mFileName.get(dexFile);
+                                    if (fileName == null){
+                                        loaderInfo.setFilePatch("null");
+                                    }
+                                    loaderInfo.setCookie(cookie);
+                                    return loaderInfo;
+                                }
+                            }
+                        }
                     }
+                } else {
+                    Log.e("dump", "class instanceof is not BaseDexClassLoader type :"+classLoader.getClass().getName());
                 }
+
             }
-        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return null;
     }
 
-    public static List<AndroidClassLoaderInfo> getDexClassLoaderCookieMpas(Context context) {
+    public static List<AndroidClassLoaderInfo> getDexClassLoaderCookieList(Context context) {
         List<AndroidClassLoaderInfo> DexClassLoaderCookieList =new ArrayList<>();
 
         BaseDexClassLoader[] classLoaders = (BaseDexClassLoader[]) getBaseDexClassLoaderList();
@@ -112,6 +124,7 @@ public class dump {
             //private Element[] dexElements;
             Class<?> dexPathListClass = Class.forName("dalvik.system.DexPathList");
             Class<?> Element = Class.forName("dalvik.system.DexPathList$Element");
+
             Field dexElementsField = dexPathListClass.getDeclaredField("dexElements");
             Field DexFile_mCookie = DexFile.class.getDeclaredField("mCookie");
             Field DexFile_mFileName = DexFile.class.getDeclaredField("mFileName");
@@ -137,7 +150,10 @@ public class dump {
                                 //这个cookie 在android 13是一个智能指针，保存的是一个native 的 DexFile 指针
                                 long[] cookie = (long[]) DexFile_mCookie.get(dexFile);
                                 String fileName = (String) DexFile_mFileName.get(dexFile);
-                                loaderInfo.setFilePatch(fileName);
+                                if (fileName == null){
+                                    loaderInfo.setFilePatch("null");
+                                }
+
                                 loaderInfo.setCookie(cookie);
                                 DexClassLoaderCookieList.add(loaderInfo);
                             }

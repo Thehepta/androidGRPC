@@ -39,6 +39,9 @@ service UserService {
     rpc getDexClassLoaderInfoByClass (StringArgument ) returns (DexClassLoaderInfo) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
     rpc dexDumpByDexFilePoint(DexFilePoint) returns (stream Dexbuff);
+    rpc getCurrentPackageName (Empty) returns (StringArgument) {}
+
+
 }
 
 
@@ -73,7 +76,7 @@ message UploadFileResponse {
 
 
 message StringArgument {
-    string className = 1;
+    string StringContent = 1;
 }
 message DexFilePoint {
     int64 values = 1;

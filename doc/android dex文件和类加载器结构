@@ -1,0 +1,10 @@
+
+ClassLoader{
+     DexPathList pathList;{
+         Element[] dexElements;{
+            DexFile dexFile;{
+                private Object mCookie;
+            }
+         }
+    }
+}

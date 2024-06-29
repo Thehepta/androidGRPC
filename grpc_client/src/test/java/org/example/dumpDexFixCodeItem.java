@@ -20,7 +20,7 @@ public class dumpDexFixCodeItem {
     public static void main(String[] args) {
 
 
-        String host = "10.1.2.242";
+        String host = "192.168.12.105";
         String fix_file = "D:\\apk\\dumpdex\\ccb_MainActivity.fixdata";   //pc dump fix path
         int port = 9091;
         ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
@@ -32,12 +32,12 @@ public class dumpDexFixCodeItem {
 //                "com.hepta.androidgrpc.JNISignatureConverter",
 //                "com.hepta.androidgrpc.LoadEntry",
 //                "com.hepta.androidgrpc.MainActivity",
-//                "com.yunmai.valueoflife.MainActivity$a",
+                "com.yunmai.valueoflife.MainActivity$a",
 //                "com.yunmai.valueoflife.StartActivity$c",
 //                "com.yunmai.valueoflife.StartActivity$b",
 //                "com.yunmai.valueoflife.StartActivity$e",
 //                "com.yunmai.valueoflife.activity.AiDouVideoActivity"
-                "com.ccb.start.MainActivity"
+//                "com.ccb.start.MainActivity"
 //                "com.PEP.biaori.activity.SplashActivity"
         };
 

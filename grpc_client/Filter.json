@@ -1,13 +1,12 @@
 {
-  "people": [
-    "androidx.activity.SystemBarStyle$Companion",
-    "androidx.activity.SystemBarStyle",
-    "androidx.activity.ViewTreeFullyDrawnReporterOwner$findViewTreeFullyDrawnReporterOwner$1",
-    "androidx.activity.ViewTreeFullyDrawnReporterOwner$findViewTreeFullyDrawnReporterOwner$2",
-    "androidx.activity.ViewTreeFullyDrawnReporterOwner",
-    "androidx.activity.ViewTreeOnBackPressedDispatcherOwner$findViewTreeOnBackPressedDispatcherOwner$1",
-    "androidx.activity.ViewTreeOnBackPressedDispatcherOwner$findViewTreeOnBackPressedDispatcherOwner$2",
-    "androidx.activity.ViewTreeOnBackPressedDispatcherOwner",
-    "androidx.activity.contextaware.ContextAware"
+  "blockClass": [
+    "apple",
+    "banana",
+    "cherry"
+  ],
+  "whileClass": [
+    "carrot",
+    "broccoli",
+    "spinach"
   ]
 }

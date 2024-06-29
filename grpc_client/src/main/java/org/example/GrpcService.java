@@ -36,7 +36,7 @@ public class GrpcService {
     }
 
     DumpClassInfo dumpClass(String className) {
-        StringArgument classNameArg = StringArgument.newBuilder().setClassName(className).build();
+        StringArgument classNameArg = StringArgument.newBuilder().setStringContent(className).build();
         DumpClassInfo dumpClassList = iServerInface.dumpClass(classNameArg).next();
         if (dumpClassList.getStatus()) {
             return dumpClassList;
@@ -45,7 +45,11 @@ public class GrpcService {
     }
 
 
-
+    String getCurrentPackageName(){
+        Empty empty = Empty.newBuilder().build();
+        StringArgument stringArgument = iServerInface.getCurrentPackageName(empty);
+        return stringArgument.getStringContent();
+    }
     byte[] dumpDexMethod(String className,String MethodName,String MethodSign){
         DumpMethodString.Builder dumpMethod = DumpMethodString.newBuilder();
         dumpMethod.setClassName(className);
@@ -56,7 +60,7 @@ public class GrpcService {
     }
 
     public DexClassLoaderInfo getClassLoaderInfo(String className){
-        StringArgument classNameArg = StringArgument.newBuilder().setClassName(className).build();
+        StringArgument classNameArg = StringArgument.newBuilder().setStringContent(className).build();
         return  iServerInface.getDexClassLoaderInfoByClass(classNameArg);
     }
     public DexClassLoaders getDexClassLoaderList() {
