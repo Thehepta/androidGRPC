@@ -72,14 +72,11 @@ public class Main {
     public  void dumpEntry() throws FileNotFoundException, InterruptedException {
 
 
-
 //        dumpDexByClassAndFix(service,dir,"com.hepta.androidgrpc.AndroidClassLoaderInfo");
 //        dumpDexByClassAndFix(OutDexDir,"com.yunmai.valueoflife.MainActivity");
 //        dumpDexByClassAndFix(OutDexDir,"com.ccb.start.MainActivity");
 //        dumpWholeDexFileAndFix(OutDexDir);
 //        OnlyDumpDexFile(OutDexDir);
-
-        FixDexMethodCodeItem("D:\\apk\\dumpdex\\com.chinamworld.main\\7643e2f2c0.dex");
 
     }
 
@@ -196,13 +193,6 @@ public class Main {
         }
 
         FixDexMethodCodeItem(filePath.toString());
-
-    }
-
-
-
-
-    public void FixSmali(){
 
     }
 
