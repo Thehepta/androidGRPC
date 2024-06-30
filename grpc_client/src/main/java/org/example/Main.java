@@ -37,7 +37,7 @@ public class Main {
     static int port;
     int jobs;
     Main(){
-        host = "192.168.12.105";
+        host = "192.168.12.104";
         port = 9091;
 
         FileReader reader = null;
@@ -72,7 +72,7 @@ public class Main {
     public  void dumpEntry() throws FileNotFoundException, InterruptedException {
 
 
-//        dumpDexByClassAndFix(service,dir,"com.hepta.androidgrpc.AndroidClassLoaderInfo");
+        dumpDexByClassAndFix(OutDexDir,"com.hepta.androidgrpc.AndroidClassLoaderInfo");
 //        dumpDexByClassAndFix(OutDexDir,"com.yunmai.valueoflife.MainActivity");
 //        dumpDexByClassAndFix(OutDexDir,"com.ccb.start.MainActivity");
 //        dumpWholeDexFileAndFix(OutDexDir);
