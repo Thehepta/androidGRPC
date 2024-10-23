@@ -1,4 +1,4 @@
-package org.example;
+package org.example.dumpdex;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;

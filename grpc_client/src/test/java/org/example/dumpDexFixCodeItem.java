@@ -1,9 +1,10 @@
 package org.example;
 
-import com.kone.pbdemo.protocol.DumpClassInfo;
-import com.kone.pbdemo.protocol.DumpMethodInfo;
+import hepta.dump.protocol.DumpClassInfo;
+import hepta.dump.protocol.DumpMethodInfo;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.example.dumpdex.SignatureConverter;
 import org.jf.baksmali.fix.FixDumpClassCodeItem;
 import org.jf.baksmali.fix.FixDumpMethodCodeItem;
 

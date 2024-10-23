@@ -1,7 +1,7 @@
 package org.example;
 
 import com.google.protobuf.ByteString;
-import com.kone.pbdemo.protocol.*;
+import hepta.dump.protocol.*;
 import io.grpc.ManagedChannel;
 import org.jf.baksmali.fix.FixClassCall;
 import org.jf.baksmali.fix.FixDumpClassCodeItem;
@@ -26,7 +26,7 @@ public class GrpcService {
     int kDexFileIndexStart = 1;
     UserServiceGrpc.UserServiceBlockingStub  iServerInface;
 
-    GrpcService(ManagedChannel channel){
+    public GrpcService(ManagedChannel channel){
         iServerInface = UserServiceGrpc.newBlockingStub(channel);
     }
 
@@ -35,7 +35,7 @@ public class GrpcService {
         iServerInface.dexDumpToLocal(empty);
     }
 
-    DumpClassInfo dumpClass(String className) {
+    public DumpClassInfo dumpClass(String className) {
         StringArgument classNameArg = StringArgument.newBuilder().setStringContent(className).build();
         DumpClassInfo dumpClassList = iServerInface.dumpClass(classNameArg).next();
         if (dumpClassList.getStatus()) {
@@ -45,7 +45,7 @@ public class GrpcService {
     }
 
 
-    String getCurrentPackageName(){
+    public String getCurrentPackageName(){
         Empty empty = Empty.newBuilder().build();
         StringArgument stringArgument = iServerInface.getCurrentPackageName(empty);
         return stringArgument.getStringContent();
@@ -55,7 +55,7 @@ public class GrpcService {
         dumpMethod.setClassName(className);
         dumpMethod.setMethodName(MethodName);
         dumpMethod.setMethodSign(MethodSign);
-        Dexbuff buff = iServerInface.dumpMethod(dumpMethod.build());
+        MEMbuff buff = iServerInface.dumpMethod(dumpMethod.build());
         return buff.getContent().toByteArray();
     }
 
@@ -72,13 +72,13 @@ public class GrpcService {
     public byte[] dexDumpByDexFilePoint(long DexFile_Point) {
 
         DexFilePoint dexFilePoint = DexFilePoint.newBuilder().setValues(DexFile_Point).build();
-        Dexbuff buff = iServerInface.dexDumpByDexFilePoint(dexFilePoint).next();
+        MEMbuff buff = iServerInface.dexDumpByDexFilePoint(dexFilePoint).next();
         ByteString data =  buff.getContent();
         return  data.toByteArray();
     }
 
 
-    void OnlyDumpDexFile(String Dir){
+    public void OnlyDumpDexFile(String Dir){
 
         DexClassLoaders dexInfoList =  getDexClassLoaderList();
         for(DexClassLoaderInfo dexInfo : dexInfoList.getDexClassLoadInfoList()){
@@ -105,4 +105,7 @@ public class GrpcService {
             }
         }
     }
+
+
+
 }

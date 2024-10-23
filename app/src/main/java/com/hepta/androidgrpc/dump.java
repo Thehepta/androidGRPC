@@ -227,5 +227,9 @@ public class dump {
     public static native byte[] dumpMethodByMember(Member method);
     public static native byte[] dumpMethodByString(Class<?> cls, String methodName, String methodSign);
     public static native ClassLoader[] getClassLoaderList();
+    public static native String[] getSoNameList();
+    public static native byte[] dumpSoMemByName(String soName);
+    public static native byte[] dumpMemByaddr(long addr ,long size);
+
 
 }

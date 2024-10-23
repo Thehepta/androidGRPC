@@ -259,6 +259,28 @@ JNIEXPORT jbyteArray JNICALL getDexBuffbyCookieLong(JNIEnv *env, jclass clazz, j
 
 }
 
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+dumpSoMemByName(JNIEnv *env, jclass clazz, jstring so_name) {
+    // TODO: implement dumpSoMemByName()
+
+}
+
+
+extern "C"
+JNIEXPORT jobjectArray JNICALL getSoNameList(JNIEnv *env, jclass clazz) {
+    // TODO: implement getSoNameList()
+
+}
+
+
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+dumpMemByaddr(JNIEnv *env, jclass clazz, jlong addr,
+              jlong size) {
+    // TODO: implement dumpSoMemByName()
+}
+
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     JNIEnv* env;
@@ -278,6 +300,9 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
             {"dumpDexToLocalByCookie", "([JLjava/lang/String;)V", (void*)dumpDexToLocalByCookie},
             {"getDexBuffbyCookieLong", "(J)[B", (void*)getDexBuffbyCookieLong},
             {"dumpDexBuffListByCookie", "([J)Ljava/util/List;", (void*)dumpDexBuffListByCookie},
+            {"dumpSoMemByName", "(Ljava/lang/String;)[B", (void*)dumpSoMemByName},
+            {"dumpMemByaddr", "(JJ)[B", (void*)dumpMemByaddr},
+            {"getSoNameList", "()[Ljava/lang/String;", (void*)getSoNameList},
     };
     env->RegisterNatives(classTest, methods, sizeof(methods)/sizeof(JNINativeMethod));
 

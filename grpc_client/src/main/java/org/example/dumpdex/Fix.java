@@ -1,7 +1,7 @@
-package org.example;
+package org.example.dumpdex;
 
-import com.kone.pbdemo.protocol.DumpClassInfo;
-import com.kone.pbdemo.protocol.DumpMethodInfo;
+import hepta.dump.protocol.DumpClassInfo;
+import hepta.dump.protocol.DumpMethodInfo;
 import org.jf.baksmali.fix.FixDumpClassCodeItem;
 import org.jf.baksmali.fix.FixDumpMethodCodeItem;
 import org.jf.baksmali.fix.FixMain;

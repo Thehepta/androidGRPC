@@ -7,24 +7,27 @@ import android.util.Log;
 
 
 import com.google.protobuf.ByteString;
-import com.kone.pbdemo.protocol.DexClassLoaderInfo;
-import com.kone.pbdemo.protocol.DexClassLoaders;
-import com.kone.pbdemo.protocol.DexFilePoint;
+import hepta.dump.protocol.DexClassLoaderInfo;
+import hepta.dump.protocol.DexClassLoaders;
+import hepta.dump.protocol.DexFilePoint;
 
-import com.kone.pbdemo.protocol.DumpClassInfo;
-import com.kone.pbdemo.protocol.DumpMethodInfo;
-import com.kone.pbdemo.protocol.Empty;
-import com.kone.pbdemo.protocol.StringArgument;
-import com.kone.pbdemo.protocol.UserServiceGrpc;
-import com.kone.pbdemo.protocol.Dexbuff;
-import com.kone.pbdemo.protocol.DumpMethodString;
+import hepta.dump.protocol.DumpClassInfo;
+import hepta.dump.protocol.DumpMethodInfo;
+import hepta.dump.protocol.Empty;
+import hepta.dump.protocol.StringArgument;
+import hepta.dump.protocol.StringList;
+import hepta.dump.protocol.UserServiceGrpc;
+import hepta.dump.protocol.MEMbuff;
+import hepta.dump.protocol.DumpMethodString;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import hepta.dump.protocol.dumpMemSize;
 import io.grpc.stub.StreamObserver;
 
 
@@ -114,10 +117,10 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     }
 
     @Override
-    public void dexDumpByDexFilePoint(DexFilePoint request, StreamObserver<Dexbuff> responseObserver) {
+    public void dexDumpByDexFilePoint(DexFilePoint request, StreamObserver<MEMbuff> responseObserver) {
         long dexFilePoint =  request.getValues();
         byte[] buff = getDexBuffbyCookieLong(dexFilePoint);
-        Dexbuff dexbuff = Dexbuff.newBuilder().setContent(ByteString.copyFrom(buff)).build();
+        MEMbuff dexbuff = MEMbuff.newBuilder().setContent(ByteString.copyFrom(buff)).build();
         responseObserver.onNext(dexbuff);
         responseObserver.onCompleted();
     }
@@ -184,13 +187,13 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
 
 
     @Override
-    public void dumpMethod(DumpMethodString request, StreamObserver<Dexbuff> responseObserver) {
+    public void dumpMethod(DumpMethodString request, StreamObserver<MEMbuff> responseObserver) {
         String clsName = request.getClassName();
         Class<?> cls = AndroidFindClass(clsName);
         String methodName = request.getMethodName();
         String methodSign = request.getMethodSign();
         byte[] method_code_item_buff =  dump.dumpMethodByString(cls,methodName,methodSign);
-        Dexbuff buff = Dexbuff.newBuilder().setContent(ByteString.copyFrom(method_code_item_buff)).build();
+        MEMbuff buff = MEMbuff.newBuilder().setContent(ByteString.copyFrom(method_code_item_buff)).build();
         responseObserver.onNext(buff);
         responseObserver.onCompleted();
     }
@@ -200,5 +203,33 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
         StringArgument stringArgument = StringArgument.newBuilder().setStringContent(context.getPackageName()).build();
         responseObserver.onNext(stringArgument);
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void dumpSoMemByName(StringArgument request, StreamObserver<MEMbuff> responseObserver) {
+        String soName =  request.getStringContent();
+        byte[] som_mem_buff =  dump.dumpSoMemByName(soName);
+        MEMbuff buff = MEMbuff.newBuilder().setContent(ByteString.copyFrom(som_mem_buff)).build();
+        responseObserver.onNext(buff);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getSoNameList(Empty request, StreamObserver<StringList> responseObserver) {
+        List<String> soNameList = Arrays.asList(dump.getSoNameList());
+        StringList stringList = StringList.newBuilder().addAllStrlist(soNameList).build();
+        responseObserver.onNext(stringList);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void dumpMemByaddr(dumpMemSize request, StreamObserver<MEMbuff> responseObserver) {
+        long address = request.getAddress();
+        long size = request.getDumpsze();
+        byte[] dump_mem_buff = dump.dumpMemByaddr(address,size);
+        MEMbuff buff = MEMbuff.newBuilder().setContent(ByteString.copyFrom(dump_mem_buff)).build();
+        responseObserver.onNext(buff);
+        responseObserver.onCompleted();
+
     }
 }

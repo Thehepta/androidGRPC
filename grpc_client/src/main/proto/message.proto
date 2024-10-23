@@ -5,7 +5,7 @@ import "file.proto";
 
 option go_package = "protocol";
 option java_multiple_files = true;
-option java_package = "com.kone.pbdemo.protocol";
+option java_package = "hepta.dump.protocol";
 
 message User {
     reserved 6 to 7;
@@ -33,14 +33,16 @@ enum UserType {
 
 service UserService {
     rpc dexDumpToLocal (Empty) returns (Empty) {}
-    rpc dumpMethod (DumpMethodString) returns (Dexbuff) {}
+    rpc dumpMethod (DumpMethodString) returns (MEMbuff) {}
     rpc dumpClass (StringArgument ) returns (stream DumpClassInfo) {}
     rpc getDexClassLoaderList (Empty ) returns (DexClassLoaders) {}
     rpc getDexClassLoaderInfoByClass (StringArgument ) returns (DexClassLoaderInfo) {}
     rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
-    rpc dexDumpByDexFilePoint(DexFilePoint) returns (stream Dexbuff);
+    rpc dexDumpByDexFilePoint(DexFilePoint) returns (stream MEMbuff);
     rpc getCurrentPackageName (Empty) returns (StringArgument) {}
-
+    rpc dumpSoMemByName (StringArgument ) returns (stream MEMbuff) {}
+    rpc dumpMemByaddr (dumpMemSize ) returns (stream MEMbuff) {}
+    rpc getSoNameList(Empty) returns (StringList) {}
 
 }
 
@@ -74,6 +76,9 @@ message UploadFileResponse {
     string FilePath = 1;
 }
 
+message StringList {
+    repeated string strlist = 1;
+}
 
 message StringArgument {
     string StringContent = 1;
@@ -81,9 +86,15 @@ message StringArgument {
 message DexFilePoint {
     int64 values = 1;
 }
-message Dexbuff {
+message MEMbuff {
     bytes Content = 1;
 }
+
+message dumpMemSize{
+    int64 address = 1;
+    int64 dumpsze = 2;
+}
+
 message DexClassLoaders{
     repeated DexClassLoaderInfo dexClassLoadInfo = 1;
 }
@@ -92,7 +103,7 @@ message DexClassLoaderInfo {
     repeated int64 values = 1;
     string dexpath = 2;
     string classLoadType = 3;
-    repeated Dexbuff buff = 4 ;
+    repeated MEMbuff buff = 4 ;
     bool status = 5;
     string msg = 6;
 
