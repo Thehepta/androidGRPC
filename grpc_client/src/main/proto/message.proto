@@ -41,7 +41,7 @@ service UserService {
     rpc dexDumpByDexFilePoint(DexFilePoint) returns (stream MEMbuff);
     rpc getCurrentPackageName (Empty) returns (StringArgument) {}
     rpc dumpSoMemByName (StringArgument ) returns (stream MEMbuff) {}
-    rpc dumpMemByaddr (dumpMemSize ) returns (stream MEMbuff) {}
+    rpc dumpMemByaddr (DumpMemInfo ) returns (stream MEMbuff) {}
     rpc getSoNameList(Empty) returns (StringList) {}
 
 }
@@ -90,7 +90,7 @@ message MEMbuff {
     bytes Content = 1;
 }
 
-message dumpMemSize{
+message DumpMemInfo{
     int64 address = 1;
     int64 dumpsze = 2;
 }

@@ -30,6 +30,16 @@ public class GrpcService {
         iServerInface = UserServiceGrpc.newBlockingStub(channel);
     }
 
+
+    public byte[] dumpMemByaddr(long addr,long size){
+        DumpMemInfo.Builder build = DumpMemInfo.newBuilder();
+        build.setAddress(addr);
+        build.setDumpsze(size);
+        MEMbuff buff = iServerInface.dumpMemByaddr(build.build()).next();
+        ByteString data =  buff.getContent();
+        return  data.toByteArray();
+    }
+
     void dumpdex(){
         Empty empty = Empty.newBuilder().build();
         iServerInface.dexDumpToLocal(empty);

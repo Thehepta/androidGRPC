@@ -279,6 +279,9 @@ JNIEXPORT jbyteArray JNICALL
 dumpMemByaddr(JNIEnv *env, jclass clazz, jlong addr,
               jlong size) {
     // TODO: implement dumpSoMemByName()
+    jbyteArray byteArray =env->NewByteArray( size);
+    env->SetByteArrayRegion(byteArray, 0, size,reinterpret_cast<const jbyte *>(addr));
+    return byteArray;
 }
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {

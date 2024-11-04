@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import hepta.dump.protocol.dumpMemSize;
+import hepta.dump.protocol.DumpMemInfo;
 import io.grpc.stub.StreamObserver;
 
 
@@ -223,13 +223,12 @@ public class GrpcServiceImpl extends UserServiceGrpc.UserServiceImplBase {
     }
 
     @Override
-    public void dumpMemByaddr(dumpMemSize request, StreamObserver<MEMbuff> responseObserver) {
+    public void dumpMemByaddr(DumpMemInfo request, StreamObserver<MEMbuff> responseObserver) {
         long address = request.getAddress();
         long size = request.getDumpsze();
         byte[] dump_mem_buff = dump.dumpMemByaddr(address,size);
         MEMbuff buff = MEMbuff.newBuilder().setContent(ByteString.copyFrom(dump_mem_buff)).build();
         responseObserver.onNext(buff);
         responseObserver.onCompleted();
-
     }
 }

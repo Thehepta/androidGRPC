@@ -8,11 +8,16 @@ import org.json.JSONTokener;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 public class Main {
     public GrpcService service;
 
-    public String worDir ;
+    public String dumpWork ; ;
     String OutDexDir;
     ManagedChannel channel ;
     static String host;
@@ -20,24 +25,35 @@ public class Main {
     int jobs;
 
     Main(){
-        host = "192.168.12.104";
+        host = "192.168.11.106";
         port = 9091;
-
-        FileReader reader = null;
-        try {
-            reader = new FileReader("D:\\androidGRPC\\grpc_client\\Filter.json");
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        JSONObject jsonObject = new JSONObject(new JSONTokener(reader));
-//        blockClassList = jsonObject.getJSONArray("blockClass");
-//        //        whileClassList = jsonObject.getJSONArray("whileClass");
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().maxInboundMessageSize(Integer.MAX_VALUE).build();
         service = new GrpcService(channel);
-//        worDir = "D:\\apk\\dumpdex";
-//        OutDexDir = worDir+"\\"+service.getCurrentPackageName();
-//        jobs = 1;
+        String currentDir = System.getProperty("user.dir");
+        dumpWork = currentDir+"/dumpWork";
+        System.out.println(dumpWork);
 
+        long  addr = 0x6e7b403000L;
+        long end = 0x6e7b5ee000L;
+
+        byte[] data = service.dumpMemByaddr(addr,end-addr);
+
+
+        Path filePath = Paths.get(dumpWork, "libpdd_secure.so"); // 构建文件路径
+        try {
+            Files.createDirectories(filePath.getParent());
+            Files.write(filePath, data, StandardOpenOption.CREATE);
+            System.out.println("    dumpdex successfule To path -> : "+filePath.toAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("    dex dump erroe: " + e.getMessage());
+        }
+
+
+    }
+
+    public static void main(String[] args) throws InterruptedException, FileNotFoundException {
+
+        Main main = new Main();
 
     }
 
